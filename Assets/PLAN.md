@@ -38,7 +38,7 @@
 ### 2-4. UI/UX
 | 순서 | 기능 | 계획서 | 상태 |
 |---|---|---|---|
-| 1 | 인게임 UI/UX | ingame_ui_ux_plan.md | 미작성 |
+| 1 | 인게임 UI/UX | ingame_ui_ux_plan.md | 미확인 |
 | 2 | 곡 선택 UI/UX | song_select_ui_ux_plan.md | 미작성 |
 | 3 | 결과 화면 UI/UX | result_ui_ux_plan.md | 미작성 |
 

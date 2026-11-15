@@ -1,3 +1,4 @@
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -76,14 +77,14 @@ public class ScoreComboState : MonoBehaviour
         }
     }
 
-    // 현재 점수·콤보를 Text에 반영한다. 콤보가 0이면 콤보 Text를 숨긴다.
+    // 현재 점수(쉼표 형식)·콤보(숫자만)를 Text에 반영한다. 콤보가 0이면 콤보 Text를 숨긴다.
     private void RefreshTexts()
     {
-        if (scoreText != null) scoreText.text = Score.ToString();
+        if (scoreText != null) scoreText.text = Score.ToString("N0", CultureInfo.InvariantCulture); // 253,400처럼 천 단위 쉼표
         if (comboText != null)
         {
             comboText.gameObject.SetActive(Combo > 0);
-            comboText.text = Combo + " COMBO";
+            comboText.text = Combo.ToString(); // 숫자만 (화면 중앙 큰 콤보 숫자)
         }
     }
 }

@@ -69,6 +69,17 @@ public class GameplayManager : MonoBehaviour
     // 정지 중에는 음악이 멈춰 있어도(isPlaying false) 끝난 것으로 보지 않는다.
     public bool IsMusicFinished => !IsPaused && (!UseAudioClock || !audioSource.isPlaying);
 
+    // ── 진행 시간 표시용 (판정용 SongTime과 별개, 인게임 HUD가 읽기만 한다) ──
+    // 음악 있는 곡은 오프셋을 빼기 전 실제 음악 재생 위치·길이, 음악 없는 곡은 곡 시간과 채보 길이.
+    public double MusicPosition => UseAudioClock ? audioSource.time : SongTime;
+    public double MusicDuration => UseAudioClock ? audioSource.clip.length : ChartDuration;
+    public bool IsMusicPlaying => UseAudioClock && audioSource.isPlaying; // 음악이 끝나 time이 0으로 돌아간 경우를 HUD가 구분하는 데 사용
+    // 채보 길이(초): 마지막 노트의 시각(롱노트는 종료 시각). 빈 채보는 0. Start에서 채보를 읽은 직후 계산
+    public double ChartDuration { get; private set; }
+
+    // 레인을 누르고 있는지 (레인 입력 빛 표시용). AUTO 단계 1~3이면 자동 입력 기준. 정지 중이거나 시작 전에는 false
+    public bool IsLaneHeld(int lane) => !IsPaused && laneNotes != null && lane >= 0 && lane < laneNotes.Length && IsHeld(lane, SongTime);
+
     // 배속을 반영한 실제 낙하 속도. x3.0이면 fallSpeed 그대로, 그 외에는 배속 비율만큼 빠르거나 느리다.
     private float FallSpeed => fallSpeed * NoteSpeed.Value / NoteSpeed.Default;
 
@@ -86,6 +97,8 @@ public class GameplayManager : MonoBehaviour
 
         int laneCount = Mathf.Min(KeyBindings.LaneCount, laneXs.Length);
         chartNotes = ChartLoader.Load(chart, laneCount);
+        ChartDuration = 0;
+        foreach (NoteData data in chartNotes) ChartDuration = Math.Max(ChartDuration, data.IsLong ? data.EndTime : data.Time);
         laneNotes = new List<Note>[laneCount];
         for (int i = 0; i < laneCount; i++) laneNotes[i] = new List<Note>();
 
