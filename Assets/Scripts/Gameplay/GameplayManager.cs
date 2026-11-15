@@ -45,10 +45,13 @@ public class GameplayManager : MonoBehaviour
     private double pausedSongTime;  // 정지한 순간의 곡 시간
     private double pauseStartedAt;  // 정지한 순간의 Time.timeAsDouble (음악 없는 곡의 기준 시각 보정용)
     private bool resumeAudio;       // 정지할 때 음악이 재생 중이었는지 (이미 끝난 음악은 다시 틀지 않기 위해)
+    private double offsetSeconds;   // 이번 플레이에 적용하는 오프셋(초). 플레이 시작 시 고정, 음악 없는 곡은 0
 
     // 현재 곡 시간(초). 정지 중에는 정지한 순간의 곡 시간을 그대로 돌려준다.
+    // 음악이 있는 곡은 오프셋만큼 뺀다: +100ms면 채보 10.000초 노트가 음악 10.100초에 판정선에 도착한다.
+    // 노트 표시·판정·롱노트·AUTO가 모두 이 값을 쓰므로 한 곳에서 같이 보정된다.
     public double SongTime => IsPaused ? pausedSongTime
-        : (UseAudioClock ? audioSource.time : Time.timeAsDouble - startTime);
+        : (UseAudioClock ? audioSource.time - offsetSeconds : Time.timeAsDouble - startTime);
 
     // 채보의 모든 노트가 생성되고 최종 판정까지 끝났으며, 화면에 남은 노트(회색 Miss 롱노트 포함)도 없는지
     public bool IsFinished
@@ -87,6 +90,7 @@ public class GameplayManager : MonoBehaviour
         for (int i = 0; i < laneCount; i++) laneNotes[i] = new List<Note>();
 
         startTime = Time.timeAsDouble;
+        offsetSeconds = UseAudioClock ? OffsetSetting.Value / 1000.0 : 0.0; // 음악 없는 곡은 맞출 음악이 없어 보정하지 않음
         if (UseAudioClock) audioSource.Play();
         prevSongTime = SongTime;
     }

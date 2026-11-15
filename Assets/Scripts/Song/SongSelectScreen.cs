@@ -22,6 +22,9 @@ public class SongSelectScreen : MonoBehaviour
     [SerializeField] private Text speedText;              // 노트 배속 표시 (예: SPEED x3.0)
     [SerializeField] private Button speedDownButton;      // 배속 -0.5
     [SerializeField] private Button speedUpButton;        // 배속 +0.5
+    [SerializeField] private Text offsetText;             // 오프셋 표시 (예: OFFSET +15 ms)
+    [SerializeField] private Button offsetDownButton;     // 오프셋 -5ms
+    [SerializeField] private Button offsetUpButton;       // 오프셋 +5ms
     [SerializeField] private string playSceneName = "IngameScene";
     [SerializeField] private int laneCount = 4;           // 노트 수 계산 시 채보 검증에 쓰는 레인 수 (GameplayManager와 같아야 함)
     [SerializeField] private Color normalColor = new Color(0.25f, 0.25f, 0.3f, 1f);
@@ -58,6 +61,9 @@ public class SongSelectScreen : MonoBehaviour
         if (speedDownButton != null) speedDownButton.onClick.AddListener(SpeedDown);
         if (speedUpButton != null) speedUpButton.onClick.AddListener(SpeedUp);
         UpdateSpeedText();
+        if (offsetDownButton != null) offsetDownButton.onClick.AddListener(OffsetDown);
+        if (offsetUpButton != null) offsetUpButton.onClick.AddListener(OffsetUp);
+        UpdateOffsetText();
 
         int initial = System.Array.IndexOf(songs, SongSelection.Selected);
         Select(initial >= 0 ? initial : 0);
@@ -94,6 +100,26 @@ public class SongSelectScreen : MonoBehaviour
     private void UpdateSpeedText()
     {
         SetText(speedText, NoteSpeed.Label);
+    }
+
+    // 오프셋을 한 단계(5ms) 내린다. (-200ms 미만으로는 내려가지 않음, 저장됨)
+    public void OffsetDown()
+    {
+        OffsetSetting.Decrease();
+        UpdateOffsetText();
+    }
+
+    // 오프셋을 한 단계(5ms) 올린다. (+200ms 초과로는 올라가지 않음, 저장됨)
+    public void OffsetUp()
+    {
+        OffsetSetting.Increase();
+        UpdateOffsetText();
+    }
+
+    // 현재 오프셋을 화면에 표시한다.
+    private void UpdateOffsetText()
+    {
+        SetText(offsetText, OffsetSetting.Label);
     }
 
     // 곡을 선택하고 강조 표시·곡 정보·시작 가능 여부를 갱신한다. 범위를 벗어나면 끝에 맞춘다.
