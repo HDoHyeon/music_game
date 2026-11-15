@@ -23,8 +23,8 @@ public class SongSelectScreen : MonoBehaviour
     [SerializeField] private Button speedDownButton;      // 배속 -0.5
     [SerializeField] private Button speedUpButton;        // 배속 +0.5
     [SerializeField] private Text offsetText;             // 오프셋 표시 (예: OFFSET +15 ms)
-    [SerializeField] private Button offsetDownButton;     // 오프셋 -5ms
-    [SerializeField] private Button offsetUpButton;       // 오프셋 +5ms
+    [SerializeField] private Button autoSyncButton;       // 탭 보정(자동 싱크) 화면으로 이동
+    [SerializeField] private string calibrationSceneName = "OffsetCalibrationScene";
     [SerializeField] private string playSceneName = "IngameScene";
     [SerializeField] private int laneCount = 4;           // 노트 수 계산 시 채보 검증에 쓰는 레인 수 (GameplayManager와 같아야 함)
     [SerializeField] private Color normalColor = new Color(0.25f, 0.25f, 0.3f, 1f);
@@ -61,8 +61,7 @@ public class SongSelectScreen : MonoBehaviour
         if (speedDownButton != null) speedDownButton.onClick.AddListener(SpeedDown);
         if (speedUpButton != null) speedUpButton.onClick.AddListener(SpeedUp);
         UpdateSpeedText();
-        if (offsetDownButton != null) offsetDownButton.onClick.AddListener(OffsetDown);
-        if (offsetUpButton != null) offsetUpButton.onClick.AddListener(OffsetUp);
+        if (autoSyncButton != null) autoSyncButton.onClick.AddListener(OpenAutoSync);
         UpdateOffsetText();
 
         int initial = System.Array.IndexOf(songs, SongSelection.Selected);
@@ -102,18 +101,12 @@ public class SongSelectScreen : MonoBehaviour
         SetText(speedText, NoteSpeed.Label);
     }
 
-    // 오프셋을 한 단계(5ms) 내린다. (-200ms 미만으로는 내려가지 않음, 저장됨)
-    public void OffsetDown()
+    // 탭 보정(자동 싱크) 화면으로 이동한다. 키 설정 패널이 열려 있거나 이미 씬을 불러오는 중이면 무시한다.
+    public void OpenAutoSync()
     {
-        OffsetSetting.Decrease();
-        UpdateOffsetText();
-    }
-
-    // 오프셋을 한 단계(5ms) 올린다. (+200ms 초과로는 올라가지 않음, 저장됨)
-    public void OffsetUp()
-    {
-        OffsetSetting.Increase();
-        UpdateOffsetText();
+        if (loading || (keySettingPanel != null && keySettingPanel.IsOpen)) return;
+        loading = true;
+        SceneManager.LoadScene(calibrationSceneName);
     }
 
     // 현재 오프셋을 화면에 표시한다.
