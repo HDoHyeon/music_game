@@ -35,6 +35,13 @@
 | 2 | 사운드 및 볼륨 설정 | audio_setting_plan.md | 미작성 |
 | 3 | 설정 화면 통합 | settings_save_plan.md | 미작성 |
 
+### 2-4. UI/UX
+| 순서 | 기능 | 계획서 | 상태 |
+|---|---|---|---|
+| 1 | 인게임 UI/UX | ingame_ui_ux_plan.md | 미작성 |
+| 2 | 곡 선택 UI/UX | song_select_ui_ux_plan.md | 미작성 |
+| 3 | 결과 화면 UI/UX | result_ui_ux_plan.md | 미작성 |
+
 ## 3. 관리 규칙
 
 - 신규 기능은 사용자 승인 후 목록에 추가한다.
