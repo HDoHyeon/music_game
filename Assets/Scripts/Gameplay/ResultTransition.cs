@@ -18,6 +18,9 @@ public class ResultTransition : MonoBehaviour
     private float finishedElapsed = -1f;               // 종료 조건을 만족한 뒤 지난 시간 (-1: 아직 만족 전)
     private bool loading;
 
+    // 결과 전환(종료 후 대기·페이드·씬 로드)이 시작되었는지. 시작 후에는 일시정지를 막는다.
+    public bool IsTransitioning => loading || finishedElapsed >= 0f;
+
     private void OnEnable()
     {
         if (gameplay != null) gameplay.OnJudged += CountJudged;
@@ -36,7 +39,8 @@ public class ResultTransition : MonoBehaviour
 
     private void Update()
     {
-        if (loading || gameplay == null) return;
+        // 정지 중에는 종료 판정과 대기 시간 누적을 하지 않는다.
+        if (loading || gameplay == null || gameplay.IsPaused) return;
 
         // 음악이 먼저 끝나도 모든 노트의 판정과 화면 표시가 끝날 때까지 기다린다.
         if (finishedElapsed < 0f)

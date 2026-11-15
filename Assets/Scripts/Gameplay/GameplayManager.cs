@@ -40,8 +40,15 @@ public class GameplayManager : MonoBehaviour
     private double prevSongTime;        // 직전 프레임의 곡 시간 (자동 입력의 "이번 프레임에 눌림" 판단용)
     private bool UseAudioClock => audioSource != null && audioSource.clip != null;
 
-    // 현재 곡 시간(초)
-    public double SongTime => UseAudioClock ? audioSource.time : Time.timeAsDouble - startTime;
+    // 일시정지 상태 (PauseController가 TryPause / TryResume으로 바꾼다)
+    public bool IsPaused { get; private set; }
+    private double pausedSongTime;  // 정지한 순간의 곡 시간
+    private double pauseStartedAt;  // 정지한 순간의 Time.timeAsDouble (음악 없는 곡의 기준 시각 보정용)
+    private bool resumeAudio;       // 정지할 때 음악이 재생 중이었는지 (이미 끝난 음악은 다시 틀지 않기 위해)
+
+    // 현재 곡 시간(초). 정지 중에는 정지한 순간의 곡 시간을 그대로 돌려준다.
+    public double SongTime => IsPaused ? pausedSongTime
+        : (UseAudioClock ? audioSource.time : Time.timeAsDouble - startTime);
 
     // 채보의 모든 노트가 생성되고 최종 판정까지 끝났으며, 화면에 남은 노트(회색 Miss 롱노트 포함)도 없는지
     public bool IsFinished
@@ -56,7 +63,8 @@ public class GameplayManager : MonoBehaviour
     }
 
     // 음악 재생이 끝났는지. 곡이 지정되지 않았으면 끝난 것으로 본다.
-    public bool IsMusicFinished => !UseAudioClock || !audioSource.isPlaying;
+    // 정지 중에는 음악이 멈춰 있어도(isPlaying false) 끝난 것으로 보지 않는다.
+    public bool IsMusicFinished => !IsPaused && (!UseAudioClock || !audioSource.isPlaying);
 
     // 배속을 반영한 실제 낙하 속도. x3.0이면 fallSpeed 그대로, 그 외에는 배속 비율만큼 빠르거나 느리다.
     private float FallSpeed => fallSpeed * NoteSpeed.Value / NoteSpeed.Default;
@@ -83,8 +91,35 @@ public class GameplayManager : MonoBehaviour
         prevSongTime = SongTime;
     }
 
+    // 게임 진행을 멈춘다: 곡 시간 고정, 음악 일시정지. 이미 정지 중이면 false.
+    public bool TryPause()
+    {
+        if (IsPaused) return false;
+        pausedSongTime = SongTime;
+        pauseStartedAt = Time.timeAsDouble;
+        resumeAudio = UseAudioClock && audioSource.isPlaying;
+        IsPaused = true;
+        if (resumeAudio) audioSource.Pause();
+        return true;
+    }
+
+    // 정지한 곡 시간부터 다시 진행한다. 정지 중이 아니면 false.
+    public bool TryResume()
+    {
+        if (!IsPaused) return false;
+        if (!UseAudioClock) startTime += Time.timeAsDouble - pauseStartedAt; // 정지해 있던 시간만큼 기준 시각을 뒤로 민다
+        if (resumeAudio) audioSource.UnPause();
+        resumeAudio = false;
+        IsPaused = false;
+        return true;
+    }
+
     private void Update()
     {
+        // 정지 중에는 노트 생성·이동·입력·롱노트·Miss 처리를 모두 멈춘다.
+        // prevSongTime도 갱신하지 않아 재개 첫 프레임에 정지 직전부터 이어서 자동 입력 구간을 처리한다.
+        if (IsPaused) return;
+
         double songTime = SongTime;
         SpawnNotes(songTime);
         MoveNotes(songTime);
