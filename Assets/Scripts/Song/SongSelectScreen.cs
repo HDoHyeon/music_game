@@ -161,6 +161,7 @@ public class SongSelectScreen : MonoBehaviour
         StopPreview();
         if (previewSource == null || song == null || song.Music == null) return;
         previewSource.clip = song.Music;
+        previewSource.volume = AudioVolume.Music01 * song.Volume; // MUSIC 볼륨 × 곡 기본 볼륨 (MASTER는 AudioListener가 곱함)
         previewSource.loop = false;
         previewSource.time = 0f;
         previewSource.Play();

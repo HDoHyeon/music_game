@@ -16,3 +16,4 @@ MonoBehaviour:
   artist: GrandChace
   chart: {fileID: 4900000, guid: e52ee5b329037344581a721f4342fbdb, type: 3}
   music: {fileID: 8300000, guid: 1ca30cff80395b849bac12b98629c454, type: 3}
+  volume: 0.1

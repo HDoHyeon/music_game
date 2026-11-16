@@ -65,6 +65,7 @@ public class OffsetCalibration : MonoBehaviour
     private void Start()
     {
         audioSource.clip = CreateMetronomeClip();
+        audioSource.volume = AudioVolume.Sfx01; // 메트로놈은 SFX 볼륨 (MASTER는 AudioListener가 곱함)
         for (int i = 0; i < TotalBeats; i++)
         {
             Note note = Instantiate(notePrefab, transform);

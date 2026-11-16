@@ -104,6 +104,8 @@ public class GameplayManager : MonoBehaviour
 
         startTime = Time.timeAsDouble;
         offsetSeconds = UseAudioClock ? OffsetSetting.Value / 1000.0 : 0.0; // 음악 없는 곡은 맞출 음악이 없어 보정하지 않음
+        // MUSIC 볼륨 × 곡 기본 볼륨 (MASTER는 AudioListener가 곱함). 볼륨은 재생 위치(곡 시간)에 영향 없음
+        if (audioSource != null) audioSource.volume = AudioVolume.Music01 * (song != null ? song.Volume : 1f);
         if (UseAudioClock) audioSource.Play();
         prevSongTime = SongTime;
     }
