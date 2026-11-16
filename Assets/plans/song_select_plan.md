@@ -3,7 +3,7 @@
 ## 1. 작업 목적 및 요구사항
 - 프로젝트: music_game (Unity 6.6, C#, URP, Mono, Input System)
 - 목적: 등록된 곡을 선택하고 해당 곡의 플레이를 시작한다.
-- 상태: 구현 완료 / 사용자 확인 완료 (2026-11-15, PLAN.md 확인)
+- 상태: 기존 곡 선택 구현 완료 / 사용자 확인 완료 (2026-11-15, PLAN.md 확인). 곡 미리듣기 보완은 구현 완료(2026-11-16) / 사용자 청취 확인 대기
 - 이 문서는 개발 진행에 따라 수정한다. 작업 범위 확대는 사용자 확인 후 반영한다.
 
 ### 요구사항
@@ -24,11 +24,36 @@
 | 키 설정 버튼 (2026-11-15, `key_setting_plan.md`) | KEY SETTING 버튼으로 설정 패널을 열고, 패널이 열린 동안 ↑↓/Enter 무시 |
 | 단독 실행 | `IngameScene`을 바로 Play하면 인스펙터에 지정한 채보로 플레이 (AUTO 검증용). 2026-11-15부터 에디터 Play는 항상 SongSelectScene에서 시작하므로 에디터에서는 이 경로를 쓰지 않음(코드는 유지) |
 
+### 추가 요구사항 — 곡 미리듣기 (2026-11-16, 사용자 확정)
+| 항목 | 확정 내용 |
+|---|---|
+| 재생 시작 | 선택한 곡의 처음(0초) |
+| 재생 방식 | 전체 곡 한 번만 재생, 반복 없음 |
+| 다른 곡 선택 | 이전 음악 즉시 정지, 새 음악 0초부터 재생 |
+| 같은 곡 재선택 | 현재 재생 상태 유지. 끝난 뒤에도 자동으로 다시 틀지 않음 |
+| 음악 없는 곡 | 이전 음악 정지, 무음 |
+| 화면 최초 진입 | 처음 선택되는 곡(기존 규칙: 이전에 고른 곡, 없으면 첫 곡)에 음악이 있으면 자동 재생 |
+| START / Enter | 미리듣기 정지 후 인게임 진입, 인게임 음악은 기존대로 처음부터 |
+| AUTO SYNC | 미리듣기 정지 후 보정 화면 진입 |
+| 곡 선택 복귀 | 결과 화면·AUTO SYNC·일시정지 메뉴에서 돌아오면 기존 선택 복원 규칙대로 선택된 곡을 처음부터 재생 |
+| 키 설정 패널 | 열어도 미리듣기는 계속 재생 (기존 입력 차단은 유지) |
+
+- 미리듣기는 `SongData.Music`을 그대로 쓴다. 별도 음원·하이라이트 구간·반복·페이드·재생 버튼·볼륨 UI는 추가하지 않는다.
+
 ## 2. 기존 코드 분석
 - `GameplayManager`는 인스펙터의 `chart`(TextAsset)와 `audioSource`(clip이 있으면 곡 시간 기준)로 플레이한다. 곡을 고르는 구조는 없다.
 - `ResultScreen`에는 RETRY 버튼만 있다.
 - Build Settings: `IngameScene`(0), `ResultScene`(1).
 - 입력은 Input System(`Keyboard.current`), UI는 uGUI + `InputSystemUIInputModule`.
+
+### 미리듣기 보완 분석 (2026-11-16, 로컬 소스·씬 확인)
+- `SongSelectScreen.Start()`: 목록 버튼을 만들고 `SongSelection.Selected`의 인덱스(없으면 0)로 `Select()` 호출. `selectedIndex` 초기값은 -1.
+- 마우스 클릭과 ↑↓는 모두 `Select(int index)`를 부른다. `Select`는 범위를 맞추고(Clamp) 강조 표시와 `ShowInfo`를 갱신한다. 같은 곡이 다시 와도 갱신만 한다.
+- `StartSong()`: `canStart`·`loading` 확인 후 `SongSelection.Selected` 저장, IngameScene 로드. `OpenAutoSync()`: `loading`·키 설정 패널 확인 후 OffsetCalibrationScene 로드.
+- `Update()`: `loading` 중이거나 키 설정 패널이 열려 있으면 ↑↓/Enter/←→ 무시.
+- `GameplayManager.Start()`는 선택 곡의 `Chart`·`Music`을 자기 AudioSource로 0초부터 재생한다. 미리듣기와 별개다.
+- **SongSelectScene에는 AudioListener가 없다** (씬 파일에서 0개 확인). 이대로는 미리듣기 소리가 들리지 않는다. 같은 원인으로 AUTO SYNC 화면이 무음이었던 적이 있다(offset_setting_plan.md).
+- 음원이 있는 곡은 kick 하나. Test Song 1~3은 음원 없음.
 
 ## 3. 작업 범위 및 수정 대상 파일
 | 파일 | 구분 | 내용 |
@@ -54,7 +79,16 @@
 | `Assets/Scenes/IngameScene.unity` | 수정 (2026-11-15, kick) | `Music` 오브젝트(AudioSource, Play On Awake 끔, 반복 없음) 추가 → `GameplayManager.audioSource` 연결. 그전에는 연결이 비어 있어 음악이 재생되지 않았음 |
 
 - 목록 버튼의 키보드 이동은 UI 기본 내비게이션을 끄고 `SongSelectScreen`에서만 처리한다(↑↓ 한 번에 두 번 움직이는 것 방지).
-- 제외 범위: 곡 미리듣기, 앨범 이미지, 난이도 구분, 정렬·검색, 최고 기록 표시.
+- 제외 범위: ~~곡 미리듣기~~(2026-11-16 사용자 요청으로 범위에 추가), 앨범 이미지, 난이도 구분, 정렬·검색, 최고 기록 표시.
+
+### 미리듣기 보완 수정 대상 (2026-11-16)
+| 파일 | 구분 | 내용 |
+|---|---|---|
+| `Assets/Scripts/Song/SongSelectScreen.cs` | 수정 | 미리듣기 AudioSource 참조, `Select`에서 곡이 바뀔 때 재생, START·AUTO SYNC 때 정지 |
+| `Assets/Scenes/SongSelectScene.unity` | 수정 | `SongPreviewAudio` 오브젝트(AudioSource) 추가·연결, **Main Camera에 AudioListener 추가** |
+
+- 수정하지 않음: SongData, SongList, SongSelection, GameplayManager, IngameScene, ResultScene, OffsetCalibrationScene.
+- **중요 — 사용자 승인 필요**: Main Camera에 AudioListener 추가 (없으면 미리듣기가 들리지 않음. 씬에 1개만 두며 중복 없음).
 
 ## 4. 상세 구현 방법 및 필요한 코드 스니펫
 ```csharp
@@ -68,6 +102,86 @@ if (song != null)
 ```
 - 노트 수·길이는 곡 선택 화면에서 `ChartLoader.Load`로 채보를 읽어 계산한다. 노트 수는 일반·롱노트 각 1개, 길이는 마지막 노트 종료 시각을 `m:ss`로 표시.
 
+### 미리듣기 보완 (2026-11-16)
+#### 씬 구성
+- `SongPreviewAudio` 오브젝트 + AudioSource: Play On Awake 끔, Loop 끔, Spatial Blend 0(2D), Volume 1, Clip 없음. `SongSelectScreen.previewSource`에 연결. DontDestroyOnLoad는 쓰지 않는다(씬을 나가면 함께 사라짐).
+- Main Camera에 AudioListener 추가 (승인 후).
+
+#### 재생·정지
+```csharp
+[SerializeField] private AudioSource previewSource; // 곡 미리듣기 전용 (인게임 음악과 별개)
+
+// 미리듣기를 멈추고 클립을 비운다.
+private void StopPreview()
+{
+    if (previewSource == null) return;
+    previewSource.Stop();
+    previewSource.clip = null;
+}
+
+// 곡의 음악을 처음부터 한 번 재생한다. 음악이 없으면 멈춘 상태(무음)로 둔다.
+private void PlayPreview(SongData song)
+{
+    StopPreview();
+    if (previewSource == null || song == null || song.Music == null) return;
+    previewSource.clip = song.Music;
+    previewSource.loop = false;
+    previewSource.time = 0f;
+    previewSource.Play();
+}
+```
+- 정지 → 클립 교체 → 0초 → 재생 순서. `PlayOneShot`을 쓰지 않아 이전 곡과 겹치지 않는다. 자연 종료 후 다시 재생하지 않는다.
+
+#### Select 연결 (기존 코드에 추가되는 부분만 표시)
+```csharp
+public void Select(int index)
+{
+    SongData[] songs = Songs;
+    if (songs.Length == 0)
+    {
+        selectedIndex = -1;
+        StopPreview();                                      // 추가
+        ShowInfo(null, null);
+        return;
+    }
+
+    int nextIndex = Mathf.Clamp(index, 0, songs.Length - 1);
+    bool changed = nextIndex != selectedIndex;              // 추가: 다른 곡으로 바뀌었을 때만 재생
+    selectedIndex = nextIndex;
+    // ... 기존 강조 표시 ...
+    SongData song = songs[selectedIndex];
+    if (changed) PlayPreview(song);                         // 추가
+    // ... 기존 ChartLoader.Load / ShowInfo ...
+}
+```
+- 같은 곡 클릭, 목록 끝에서 ↑↓(Clamp로 같은 인덱스)는 재생을 다시 시작하지 않는다. 강조·정보 갱신은 기존대로.
+- `selectedIndex` 초기값 -1 덕분에 `Start`의 첫 `Select`에서 재생이 시작된다.
+- 미리듣기 여부는 `Music` 유무, START 가능 여부는 기존 채보 검증으로 서로 따로 판단한다.
+- GPT 초안에 있던 `Select` 맨 앞 `if (loading) return;`은 넣지 않는다. 씬을 불러오는 중에는 `Update`가 이미 키 입력을 막고, 그사이 마우스 클릭으로 재생이 시작돼도 씬 전환과 함께 사라져 영향이 없다. 기존 동작을 바꾸지 않기 위해서다.
+
+#### 씬 전환
+```csharp
+public void StartSong()
+{
+    if (!canStart || loading) return;
+    loading = true;
+    StopPreview();                                          // 추가
+    SongSelection.Selected = Songs[selectedIndex];
+    SceneManager.LoadScene(playSceneName);
+}
+
+public void OpenAutoSync()
+{
+    if (loading || (keySettingPanel != null && keySettingPanel.IsOpen)) return;
+    loading = true;
+    StopPreview();                                          // 추가
+    SceneManager.LoadScene(calibrationSceneName);
+}
+```
+- START가 막힌 곡에서 Enter를 눌러도 미리듣기는 멈추지 않는다(기존 조건 그대로).
+- 씬을 나가면 AudioSource가 씬과 함께 사라지므로 GPT 초안의 `OnDisable` 정리는 넣지 않는다.
+- `SongSelection.Selected`는 기존처럼 START 때만 저장한다.
+
 ## 5. 구현 순서 및 진행 상태
 - [x] 곡 데이터 스크립트·테스트 채보·에셋 (`Assets/Songs/TestSong1~3.asset`, `SongList.asset`, `test_chart_2/3.txt`)
 - [x] 곡 선택 화면 스크립트, `GameplayManager` 연결, 결과 화면 버튼 → 컴파일 확인 (에러 0건)
@@ -80,6 +194,19 @@ if (song != null)
 - 완료: 계획, 구현, Claude 자동 검증
 - 진행 중: 없음
 - 남은 작업: 사용자 확인 (↑↓/Enter 키, 마우스 클릭, 화면 배치)
+
+### 미리듣기 보완 (2026-11-16)
+- [x] GPT 초안 검토, 로컬 소스·씬 대조 (AudioListener 없음 확인)
+- [x] 사용자 재생 정책 확정 (0초부터 전체 곡 1회)
+- [x] 사용자 구현 승인 (AudioListener 추가 포함, 2026-11-16)
+- [x] SongPreviewAudio·AudioListener 배치 및 참조 연결 (AudioListener 1개)
+- [x] 재생/정지 메서드, Select·START·AUTO SYNC 연결
+- [x] 컴파일·Inspector 참조 확인 (오류 0, previewSource 연결)
+- [x] Play Mode 검증 (6절 SP 표)
+- [x] 기존 곡 선택·인게임·자동 싱크 회귀 (AUTO 3 3곡)
+- [ ] 사용자 청취 확인
+- [x] 결과 기록, PLAN.md 곡 선택 상태 확인 → 미확인 (2026-11-16)
+- PLAN.md: 구현 시작 시 곡 선택 상태를 "확인" → "미확인"으로 바꾸고, 사용자 확인 후 "확인"으로 되돌린다(기능 목록 상태 칸).
 
 ## 6. 테스트 및 검증 방법
 | 테스트 항목 | 기대 결과 | 상태 |
@@ -100,6 +227,33 @@ if (song != null)
 - [x] 실제 플레이에서 기능 검증 (Claude가 SongSelectScene부터 Play 모드로 전체 흐름 실행, 버튼은 `onClick` 호출)
 - [x] 관련 기존 기능 회귀 테스트 (IngameScene 단독 AUTO 3단계 35800, ResultScene 단독 실행 시 NO RESULT)
 
+### 미리듣기 보완 테스트 (2026-11-16)
+- C: Claude (컴파일, Play Mode에서 함수 직접 호출, AudioSource 상태·재생 위치 확인) / U: 사용자 (실제 청취, 키·마우스)
+- Unity 창에 포커스가 없으면 화면 프레임은 멈추지만 오디오는 계속 재생된다. 그래서 `isPlaying`·`time` 변화와 곡 끝 정지는 C가 확인할 수 있고, 소리가 실제로 들리는지는 U만 확인할 수 있다.
+
+| ID | 테스트 | 기대 결과 | 주체 | 상태 |
+|---|---|---|---|---|
+| SP-01 | 최초 진입, 음악 없는 첫 곡 | 무음, 곡 정보 정상 | C/U | C 통과 (Test Song 1 선택, clip 없음, 재생 안 함) / U 미검증 |
+| SP-02 | kick 클릭 | 0초부터 재생, 시간이 흐름 | C/U | C 통과 (클릭 직후 0.00초, 2초 뒤 2.09초, 4초 뒤 4.37초) / U 미검증 |
+| SP-03 | ↑↓로 kick 선택 | 클릭과 같게 재생 | C/U | C 통과 (↑↓와 같은 경로인 Select(i±1) 직접 호출로 확인) / U 미검증 (실제 키) |
+| SP-04 | kick → 음악 없는 곡 | 즉시 정지, clip 없음 | C/U | C 통과 (clip 없음, 정지) / U 미검증 |
+| SP-05 | 음악 있는 A → 음악 있는 B | A 정지, B 0초부터, 겹침 없음 | C | 통과 (메모리 임시 곡: kick → TempPreview 0초, AudioSource 1개뿐이라 겹침 없음, 에셋 변경 없음) |
+| SP-06 | 같은 곡 클릭·목록 끝 입력 | 재생 위치 유지, 다시 시작 안 함 | C/U | C 통과 (같은 곡 클릭·Select(99) 후 4.59 → 5.70초로 이어짐) / U 미검증 |
+| SP-07 | kick 끝까지 재생 | 반복 없이 정지, 자동 재시작 없음 | C/U | C 통과 (끝 1초 전 → 90.64초에서 정지, 1초 더 기다려도 재생 안 함, 같은 곡 클릭해도 재시작 없음) / U 미검증 |
+| SP-08 | 다른 곡 선택 후 kick 다시 선택 | 0초부터 재생 | C/U | C 통과 (다른 곡 → kick 0.00초, 1초 뒤 1.11초) / U 미검증 |
+| SP-09 | START / Enter | 미리듣기 정지, 인게임 음악 처음부터 | C/U | C 통과 (StartSong 직후 clip 없음·정지, 인게임 Music kick 0.00초에서 시작) / U 미검증 |
+| SP-10 | AUTO SYNC 진입 | 미리듣기 정지, 보정 메트로놈만 | C/U | C 통과 (OpenAutoSync 직후 정지, 보정 화면 AudioSource는 Metronome 하나) / U 미검증 |
+| SP-11 | 결과 → SONG SELECT | 마지막 플레이 곡 선택, 그 곡 음악 처음부터 | C/U | C 통과 (인게임 일시정지 메뉴 Song Select → kick 선택, 1초 뒤 1.11초로 처음부터). 결과 화면 경로는 같은 Start 복원 규칙이라 따로 실행 안 함 / U 미검증 |
+| SP-12 | 빈 목록·null 곡·음악 없는 곡 | 오류 없이 무음, START 조건 그대로 | C | 통과 (songList를 메모리에서만 비움 → 선택 -1, 무음, START 불가, 오류 없음 → 복원) |
+| SP-13 | 빠르게 연속 선택 | 마지막 곡만 재생 | C | 통과 (0→3→1→3은 kick 0초, …→1로 끝나면 정지) |
+| SP-14 | 키 설정 패널 열기 | 기존 입력 차단 유지, 미리듣기 계속 | C/U | C 통과 (패널 열린 채 1초 뒤 1.02초로 계속 재생, AUTO SYNC는 무시) / U 미검증 |
+| SP-15 | 씬 전환·Play 종료 | 미리듣기 남지 않음 | C | 통과 (씬 전환 후 미리듣기 AudioSource 없음, Play 종료 후 재생 중 AudioSource 0) |
+| SP-16 | 컴파일·참조·AudioListener | 오류·참조 누락 없음, AudioListener 1개 | C | 통과 (컴파일 오류 0, previewSource 연결, AudioListener 1개) |
+| SP-17 | AUTO 3 회귀 | Test Song 1 35800/61, Test Song 2 9800/14, kick 263200/364 | C | 통과 (Test Song 1 35,800/61, Test Song 2 9,800/14, kick 263,200/364 Perfect 220 Tick 144 — kick은 음악 시간을 직접 진행) |
+
+- SP-05: 음원 있는 곡이 kick 하나뿐이라, 검증 중 메모리에서만 임시 AudioClip·SongData를 만들어 확인한다(에셋 추가·변경 없음).
+- SP-07: 끝까지 기다리거나 재생 위치를 끝 근처로 옮겨 확인한다.
+
 ## 7. 검증 결과 및 미해결 사항
 - 검증 결과 (2026-11-15, Play 모드를 `EditorApplication.Step()`으로 진행, AUTO TEST 3단계):
   - 컴파일 에러 0건, Play 모드 중 에러·경고 0건.
@@ -118,3 +272,11 @@ if (song != null)
   - Test Song 1(음악 없음) AUTO 3단계 35800 유지. 에러 0건(경고 1건은 검증 스크립트가 음악 없는 곡의 `time`을 읽어서 생긴 것), 씬 변경 남지 않음.
   - 관찰: 시작 직후 약 30초 동안 오디오가 2.2초 위치에서 멈췄다가 재개됨(노트도 함께 멈춰 판정 영향 없음). 에디터 포커스가 없는 상태 때문으로 추정, 미확인.
   - 미해결: 소리 품질과 출력 지연까지 포함한 실제 싱크, 시작 부분 끊김 여부는 사용자 확인 필요(출력 지연 보정은 오프셋 기능 범위).
+
+### 미리듣기 보완 검증 상태 (2026-11-16)
+- 구현: `SongSelectScreen.cs`(previewSource, StopPreview/PlayPreview, Select·StartSong·OpenAutoSync 연결), `SongSelectScene`(SongPreviewAudio 오브젝트, Main Camera AudioListener). 계획 4절 그대로이며 다르게 만든 부분 없음.
+- 검증 방식: 함수 직접 호출 + AudioSource 상태 확인. 에디터가 일시정지되어 있으면 `isPlaying`이 항상 false이고 재생 위치도 멈춰서, 재생 위치는 일시정지를 잠깐 풀고 읽었다.
+- 결과: 6절 SP 표대로 C 항목 모두 통과. 실제 소리가 들리는지, ↑↓·마우스 실제 입력은 사용자 확인 필요.
+- 참고: 검증 중 경고 "Attempting to get `time` on an audio source..."가 나왔는데, 검증 스크립트가 clip이 없는 AudioSource의 time을 읽어서 생긴 것이다(게임 코드 아님). 스크립트를 고친 뒤 경고 0.
+- 위 기존 검증 기록(2026-11-15)은 과거 결과이며 이번 보완의 통과 결과가 아니다.
+- 변경 이력: 2026-11-16 GPT 미리듣기 초안을 로컬 소스·씬과 대조해 반영(AudioListener 추가 명시, `Select`의 `loading` 검사와 `OnDisable` 정리는 제외). 기존 내용은 그대로 보존.

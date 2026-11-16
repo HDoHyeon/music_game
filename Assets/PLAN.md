@@ -17,7 +17,7 @@
 | 4 | 점수 및 콤보 | score_combo_plan.md | 확인 |
 | 5 | 롱노트 | long_note_plan.md | 확인 |
 | 6 | 게임 결과 화면 | result_screen_plan.md | 확인 |
-| 7 | 곡 선택 화면 | song_select_plan.md | 확인 |
+| 7 | 곡 선택 화면 | song_select_plan.md | 미확인 |
 | 8 | 자동 플레이(AUTO TEST) | auto_play_plan.md | 확인 |
 
 ### 2-2. 플레이 안정성 및 데이터 구조
