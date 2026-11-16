@@ -14,13 +14,13 @@
 | 항목 | 확정값 |
 |---|---|
 | 레인·기본 키 | 4레인, D / F / J / K |
-| 설정 위치 | 곡 선택 화면의 KEY SETTING 버튼 → 설정 패널 |
+| 설정 위치 | ~~곡 선택 화면의 KEY SETTING 버튼~~ → 2026-11-16부터 **설정 화면(SettingsScene)의 KEY SETTING 버튼** → 설정 패널 (곡 선택 화면 SETTINGS로 진입, settings_save_plan.md) |
 | 변경 방법 | 패널에서 레인 버튼(`LANE 1  D` 형식)을 누르고 새 키를 누르면 적용 |
 | 중복 키 | 서로 맞바꿈 (예: 레인 1(D)에 F → F를 쓰던 레인 2가 D로) |
 | 입력 규칙 | 키 대기 중 Esc는 취소. Enter·숫자패드 Enter·방향키·Esc는 레인 키로 사용 불가("CANNOT USE" 표시) |
 | 저장 | PlayerPrefs에 저장해 재실행 후에도 유지. RESET 버튼으로 D/F/J/K 복원 |
 | 적용 | 플레이 씬의 키보드 입력(AUTO 0단계)이 저장된 키를 사용 |
-| 패널이 열린 동안 | 곡 선택 화면의 ↑↓/Enter 동작 안 함. CLOSE로 닫음 |
+| 패널이 열린 동안 | ~~곡 선택 화면의 ↑↓/Enter 동작 안 함~~ → 2026-11-16부터 설정 화면의 BACK·OFFSET SETTING 동작 안 함. CLOSE로 닫음 |
 
 ## 2. 기존 코드 분석
 - 레인 키는 `GameplayManager.laneInputKeys`(인스펙터 값 D/F/J/K)에만 있고 변경·저장 기능이 없다.
@@ -92,3 +92,4 @@ public static bool TrySet(int lane, Key key)
   - 검증 전 PlayerPrefs에 저장값이 없었으므로 검증 후 저장 키를 삭제해 원상태로 되돌림.
 - 미해결: 없음. Claude가 확인하지 못한 항목(실제 키 입력으로 레인 키 변경, 패널이 열린 동안 곡 선택 ↑↓/Enter 차단, 바꾼 키로 노트 판정)은 사용자 확인 완료 (PLAN.md 확인 처리 기준). 6장 표의 미검증은 Claude 검증 기준으로 그대로 둠
 - 변경 이력: 초안 작성 → 2026-11-15 미확정 사항 확정 및 상세 설계 반영 → 구현 및 검증
+- 2026-11-16 설정 화면 통합(settings_save_plan.md): KEY SETTING 버튼·패널·KeySettingPanel 오브젝트를 곡 선택 화면에서 SettingsScene으로 이동(동작 변경 없음, 주석만 수정). 곡 선택 화면의 패널 열림 검사(`SongSelectScreen.Update`)는 제거. 위 2절 분석과 6·7절 검증 기록은 당시(곡 선택 화면) 기준으로 그대로 둠. 이동 후 키 변경·중복 교환·금지 키·Esc·RESET·저장 유지는 settings_save_plan.md ST-06~09·17에서 다시 확인(C 통과).

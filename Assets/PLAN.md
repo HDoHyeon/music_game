@@ -33,7 +33,7 @@
 |---|---|---|---|
 | 1 | 플레이 기록 저장 | record_save_plan.md | 미작성 |
 | 2 | 사운드 및 볼륨 설정 | audio_setting_plan.md | 미작성 |
-| 3 | 설정 화면 통합 | settings_save_plan.md | 미작성 |
+| 3 | 설정 화면 통합 | settings_save_plan.md | 미확인 |
 
 ### 2-4. UI/UX
 | 순서 | 기능 | 계획서 | 상태 |

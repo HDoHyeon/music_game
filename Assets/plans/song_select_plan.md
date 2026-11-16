@@ -21,7 +21,7 @@
 | 조작 | 마우스: 목록 클릭으로 선택, START로 시작. 키보드: ↑↓로 선택, Enter로 시작 |
 | 시작 불가 | 곡이 없거나, 채보가 비었거나, 노트가 0개면 START 비활성 + "CANNOT PLAY" 표시 |
 | 선택 기억 | 결과 화면에서 SONG SELECT로 돌아오면 마지막으로 고른 곡이 선택된 상태 |
-| 키 설정 버튼 (2026-11-15, `key_setting_plan.md`) | KEY SETTING 버튼으로 설정 패널을 열고, 패널이 열린 동안 ↑↓/Enter 무시 |
+| 키 설정 버튼 (2026-11-15, `key_setting_plan.md`) | ~~KEY SETTING 버튼으로 설정 패널을 열고, 패널이 열린 동안 ↑↓/Enter 무시~~ → 2026-11-16부터 곡 선택 화면에는 **SETTINGS 버튼**(오른쪽 위)만 두고, 키 설정·오프셋은 설정 화면에서 (settings_save_plan.md) |
 | 단독 실행 | `IngameScene`을 바로 Play하면 인스펙터에 지정한 채보로 플레이 (AUTO 검증용). 2026-11-15부터 에디터 Play는 항상 SongSelectScene에서 시작하므로 에디터에서는 이 경로를 쓰지 않음(코드는 유지) |
 
 ### 추가 요구사항 — 곡 미리듣기 (2026-11-16, 사용자 확정)
@@ -34,9 +34,9 @@
 | 음악 없는 곡 | 이전 음악 정지, 무음 |
 | 화면 최초 진입 | 처음 선택되는 곡(기존 규칙: 이전에 고른 곡, 없으면 첫 곡)에 음악이 있으면 자동 재생 |
 | START / Enter | 미리듣기 정지 후 인게임 진입, 인게임 음악은 기존대로 처음부터 |
-| AUTO SYNC | 미리듣기 정지 후 보정 화면 진입 |
-| 곡 선택 복귀 | 결과 화면·AUTO SYNC·일시정지 메뉴에서 돌아오면 기존 선택 복원 규칙대로 선택된 곡을 처음부터 재생 |
-| 키 설정 패널 | 열어도 미리듣기는 계속 재생 (기존 입력 차단은 유지) |
+| ~~AUTO SYNC~~ SETTINGS | ~~미리듣기 정지 후 보정 화면 진입~~ → 2026-11-16부터 SETTINGS: 미리듣기 정지 후 설정 화면 진입 (AUTO SYNC는 설정 화면으로 이동) |
+| 곡 선택 복귀 | 결과 화면·~~AUTO SYNC~~ 설정 화면(BACK)·일시정지 메뉴에서 돌아오면 기존 선택 복원 규칙대로 선택된 곡을 처음부터 재생. 설정 화면에서 돌아오면 들어가기 직전에 고른 곡 |
+| 키 설정 패널 | ~~열어도 미리듣기는 계속 재생 (기존 입력 차단은 유지)~~ → 2026-11-16부터 키 설정 패널은 설정 화면에 있어 곡 선택 화면에는 해당 없음 |
 
 - 미리듣기는 `SongData.Music`을 그대로 쓴다. 별도 음원·하이라이트 구간·반복·페이드·재생 버튼·볼륨 UI는 추가하지 않는다.
 
@@ -280,3 +280,4 @@ public void OpenAutoSync()
 - 참고: 검증 중 경고 "Attempting to get `time` on an audio source..."가 나왔는데, 검증 스크립트가 clip이 없는 AudioSource의 time을 읽어서 생긴 것이다(게임 코드 아님). 스크립트를 고친 뒤 경고 0.
 - 위 기존 검증 기록(2026-11-15)은 과거 결과이며 이번 보완의 통과 결과가 아니다.
 - 변경 이력: 2026-11-16 GPT 미리듣기 초안을 로컬 소스·씬과 대조해 반영(AudioListener 추가 명시, `Select`의 `loading` 검사와 `OnDisable` 정리는 제외). 기존 내용은 그대로 보존.
+- 변경 이력: 2026-11-16 설정 화면 통합(settings_save_plan.md): 곡 선택 화면의 KEY SETTING 버튼·키 설정 패널·OFFSET 표시·AUTO SYNC 버튼을 설정 화면으로 옮기고 SETTINGS 버튼 추가. `SongSelectScreen`에서 `keySettingPanel`·`offsetText`·`autoSyncButton`·`calibrationSceneName`·`OpenAutoSync`·`UpdateOffsetText`와 `Update`의 패널 검사를 지우고 `settingsButton`·`OpenSettings`(미리듣기 정지, 고른 곡을 `SongSelection.Selected`에 저장 후 이동) 추가. 1절 요구사항 표만 고쳤고, 2~4절 분석·코드와 SP-10·SP-14 검증 기록은 당시 기준으로 그대로 둠. 이동 후 미리듣기 정지·복귀 재생은 settings_save_plan.md ST-02·03·18에서 다시 확인(C 통과).

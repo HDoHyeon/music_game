@@ -8,7 +8,7 @@ using UnityEngine.UI;
 // 탭 보정(자동 싱크) 화면.
 // 120 BPM 메트로놈에 맞춰 인게임과 같은 4레인에 노트가 레인 1→2→3→4 순서로 내려오고, 준비 4박 뒤 16박 동안 노트가 있는 레인의 키(기본 D/F/J/K)를 친다.
 // 누를 때마다 그 박자와의 차이를 기록하고(±250ms 밖·다른 레인 키는 제외), 차이들의 중앙값을 5ms 단위로 맞춰 오프셋 결과로 보여 준다.
-// 늦게 치면 + (OffsetSetting의 부호와 같음). APPLY로 저장, RETRY로 다시 측정, CANCEL/Esc로 저장 없이 곡 선택 화면으로 돌아간다.
+// 늦게 치면 + (OffsetSetting의 부호와 같음). APPLY로 저장, RETRY로 다시 측정, CANCEL/Esc로 저장 없이 설정 화면으로 돌아간다. (APPLY 후에도 설정 화면)
 // 측정 시간은 메트로놈의 재생 위치(audioSource.time) 기준이며, 저장된 오프셋은 적용하지 않는다.
 public class OffsetCalibration : MonoBehaviour
 {
@@ -38,7 +38,7 @@ public class OffsetCalibration : MonoBehaviour
     [SerializeField] private Button applyButton;
     [SerializeField] private Button retryButton;
     [SerializeField] private Button cancelButton;
-    [SerializeField] private string songSelectSceneName = "SongSelectScene";
+    [SerializeField] private string settingsSceneName = "SettingsScene"; // APPLY / CANCEL / Esc 후 돌아갈 씬 (설정 화면)
 
     private readonly List<double> errors = new List<double>();    // 유효 입력의 박자 차이(초)
     private readonly HashSet<int> tappedBeats = new HashSet<int>(); // 이미 센 박자 (한 박자에 1번만)
@@ -158,12 +158,12 @@ public class OffsetCalibration : MonoBehaviour
         if (resultPanel != null) resultPanel.SetActive(true);
     }
 
-    // 결과를 오프셋으로 저장하고 곡 선택 화면으로 돌아간다.
+    // 결과를 오프셋으로 저장하고 설정 화면으로 돌아간다.
     public void Apply()
     {
         if (!showingResult || !HasResult || loading) return;
         OffsetSetting.Set(resultMs);
-        LoadSongSelect();
+        LoadSettings();
     }
 
     // 기록을 지우고 처음부터 다시 측정한다.
@@ -174,18 +174,19 @@ public class OffsetCalibration : MonoBehaviour
         BeginMeasure();
     }
 
-    // 저장하지 않고 곡 선택 화면으로 돌아간다.
+    // 저장하지 않고 설정 화면으로 돌아간다.
     public void Cancel()
     {
         if (loading) return;
-        LoadSongSelect();
+        LoadSettings();
     }
 
-    private void LoadSongSelect()
+    // 저장 여부와 상관없이 설정 화면으로 돌아간다.
+    private void LoadSettings()
     {
         loading = true;
         audioSource.Stop();
-        SceneManager.LoadScene(songSelectSceneName);
+        SceneManager.LoadScene(settingsSceneName);
     }
 
     // 박자마다 노트 1개: 인게임과 같은 식(Note.UpdatePosition)으로 박자 시각에 판정선에 닿게 한다.

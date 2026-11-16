@@ -4,12 +4,12 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
 using UnityEngine.UI;
 
-// 곡 선택 화면의 키 설정 패널: 레인 버튼을 누르고 새 키를 누르면 KeyBindings에 적용·저장한다.
+// 설정 화면의 키 설정 패널: 레인 버튼을 누르고 새 키를 누르면 KeyBindings에 적용·저장한다.
 // 키 대기 중 Esc는 취소, 금지 키(Enter·방향키)는 "CANNOT USE" 표시. RESET으로 D/F/J/K 복원.
 public class KeySettingPanel : MonoBehaviour
 {
     [SerializeField] private GameObject panelRoot;   // 패널 전체 (처음엔 숨김)
-    [SerializeField] private Button openButton;      // 곡 선택 화면의 KEY SETTING 버튼
+    [SerializeField] private Button openButton;      // 설정 화면의 KEY SETTING 버튼
     [SerializeField] private Button closeButton;
     [SerializeField] private Button resetButton;
     [SerializeField] private Button[] laneButtons;   // 인덱스 = 레인
@@ -19,7 +19,7 @@ public class KeySettingPanel : MonoBehaviour
 
     private int waitingLane = -1; // 키 입력을 기다리는 레인 (-1: 대기 안 함)
 
-    // 패널이 열려 있는지 (열려 있는 동안 곡 선택 화면은 ↑↓/Enter를 무시한다)
+    // 패널이 열려 있는지 (열려 있는 동안 설정 화면은 BACK·OFFSET SETTING을 무시한다)
     public bool IsOpen => panelRoot != null && panelRoot.activeSelf;
 
     // 버튼을 연결하고 패널을 닫힌 상태로 시작한다.

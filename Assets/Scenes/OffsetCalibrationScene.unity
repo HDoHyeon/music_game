@@ -338,7 +338,7 @@ MonoBehaviour:
   applyButton: {fileID: 531374455}
   retryButton: {fileID: 462864139}
   cancelButton: {fileID: 928704588}
-  songSelectSceneName: SongSelectScene
+  settingsSceneName: SettingsScene
 --- !u!82 &271600162
 AudioSource:
   m_ObjectHideFlags: 0

@@ -19,14 +19,12 @@ public class SongSelectScreen : MonoBehaviour
     [SerializeField] private Text lengthText;
     [SerializeField] private Text messageText;            // 시작할 수 없을 때 "CANNOT PLAY"
     [SerializeField] private Button startButton;
-    [SerializeField] private KeySettingPanel keySettingPanel; // 열려 있는 동안 ↑↓/Enter/←→ 무시
     [SerializeField] private Text speedText;              // 노트 배속 표시 (예: SPEED x3.0)
     [SerializeField] private Button speedDownButton;      // 배속 -0.5
     [SerializeField] private Button speedUpButton;        // 배속 +0.5
-    [SerializeField] private Text offsetText;             // 오프셋 표시 (예: OFFSET +15 ms)
-    [SerializeField] private Button autoSyncButton;       // 탭 보정(자동 싱크) 화면으로 이동
+    [SerializeField] private Button settingsButton;       // 설정 화면(키 설정·오프셋)으로 이동 (오른쪽 위)
     [SerializeField] private AudioSource previewSource;   // 곡 미리듣기 전용 (인게임 음악과 별개, 반복 없음)
-    [SerializeField] private string calibrationSceneName = "OffsetCalibrationScene";
+    [SerializeField] private string settingsSceneName = "SettingsScene";
     [SerializeField] private string playSceneName = "IngameScene";
     [SerializeField] private int laneCount = 4;           // 노트 수 계산 시 채보 검증에 쓰는 레인 수 (GameplayManager와 같아야 함)
     [SerializeField] private Color normalColor = new Color(0.25f, 0.25f, 0.3f, 1f);
@@ -63,8 +61,7 @@ public class SongSelectScreen : MonoBehaviour
         if (speedDownButton != null) speedDownButton.onClick.AddListener(SpeedDown);
         if (speedUpButton != null) speedUpButton.onClick.AddListener(SpeedUp);
         UpdateSpeedText();
-        if (autoSyncButton != null) autoSyncButton.onClick.AddListener(OpenAutoSync);
-        UpdateOffsetText();
+        if (settingsButton != null) settingsButton.onClick.AddListener(OpenSettings);
 
         int initial = System.Array.IndexOf(songs, SongSelection.Selected);
         Select(initial >= 0 ? initial : 0);
@@ -75,7 +72,6 @@ public class SongSelectScreen : MonoBehaviour
     {
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null || loading) return;
-        if (keySettingPanel != null && keySettingPanel.IsOpen) return; // 키 설정 중에는 곡 선택 조작을 막는다
         if (keyboard.upArrowKey.wasPressedThisFrame) Select(selectedIndex - 1);
         if (keyboard.downArrowKey.wasPressedThisFrame) Select(selectedIndex + 1);
         if (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame) StartSong();
@@ -103,19 +99,16 @@ public class SongSelectScreen : MonoBehaviour
         SetText(speedText, NoteSpeed.Label);
     }
 
-    // 탭 보정(자동 싱크) 화면으로 이동한다. 키 설정 패널이 열려 있거나 이미 씬을 불러오는 중이면 무시한다.
-    public void OpenAutoSync()
+    // 설정 화면으로 이동한다. 돌아왔을 때 지금 고른 곡이 선택되도록 SongSelection.Selected에 넣어 둔다.
+    // (Selected를 읽는 곳은 인게임 시작과 이 화면의 처음 선택뿐이고, START가 항상 새로 저장하므로 다른 흐름에 영향 없음)
+    public void OpenSettings()
     {
-        if (loading || (keySettingPanel != null && keySettingPanel.IsOpen)) return;
+        if (loading) return;
         loading = true;
-        StopPreview(); // 보정 화면에서는 메트로놈만 들리게
-        SceneManager.LoadScene(calibrationSceneName);
-    }
-
-    // 현재 오프셋을 화면에 표시한다.
-    private void UpdateOffsetText()
-    {
-        SetText(offsetText, OffsetSetting.Label);
+        StopPreview(); // 설정 화면에서는 음악을 재생하지 않는다
+        SongData[] songs = Songs;
+        if (selectedIndex >= 0 && selectedIndex < songs.Length) SongSelection.Selected = songs[selectedIndex];
+        SceneManager.LoadScene(settingsSceneName);
     }
 
     // 곡을 선택하고 강조 표시·곡 정보·시작 가능 여부를 갱신한다. 범위를 벗어나면 끝에 맞춘다.
