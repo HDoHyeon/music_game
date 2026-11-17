@@ -16,6 +16,9 @@ public class ResultScreen : MonoBehaviour
     [SerializeField] private Text missCountText;
     [SerializeField] private Text newBestText;   // 최고 점수를 갱신했으면 NEW BEST (아니면 숨김)
     [SerializeField] private Text bestText;      // 저장된 최고 점수 (이번 결과와 구분)
+    [SerializeField] private Text songTitleText; // 플레이한 곡명 (오른쪽 위)
+    [SerializeField] private Text songSubText;   // 아티스트 · 난이도 (난이도는 난이도 색)
+    [SerializeField] private Color[] difficultyColors = new Color[3]; // Easy/Normal/Hard 글자 색 (곡 선택 화면과 같은 값)
     [SerializeField] private Button retryButton;
     [SerializeField] private Button songSelectButton;
     [SerializeField] private string playSceneName = "IngameScene";
@@ -46,6 +49,7 @@ public class ResultScreen : MonoBehaviour
             SetText(missCountText, "");
             SetText(bestText, "");
             if (newBestText != null) newBestText.gameObject.SetActive(false);
+            ShowSongInfo(null); // 결과가 없으면 곡 정보도 숨긴다
             return;
         }
 
@@ -75,6 +79,33 @@ public class ResultScreen : MonoBehaviour
         // 기록: AUTO TEST·곡 선택 없이 실행한 플레이는 저장되지 않으므로 NEW BEST가 나오지 않는다
         if (newBestText != null) newBestText.gameObject.SetActive(result.IsNewBest);
         SetText(bestText, "BEST  " + (result.HasBest ? result.BestScore.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) : "-"));
+
+        // 곡 정보: 결과 씬은 플레이 종료(ResultTransition)로만 열리고 그 사이 선택 값이 바뀌지 않으므로,
+        // 지금의 선택 곡·난이도가 방금 플레이한 곡이다. 곡 선택 없이 플레이했으면 null → 숨김.
+        ShowSongInfo(SongSelection.Selected);
+    }
+
+    // 곡명과 "아티스트 · 난이도"를 표시한다. song이 null이면 둘 다 숨긴다.
+    // 난이도는 난이도 구분이 있는 곡만 표시 (Test Song처럼 채보가 하나뿐인 곡은 숨김, 곡 선택 화면과 같은 규칙).
+    private void ShowSongInfo(SongData song)
+    {
+        bool show = song != null;
+        if (songTitleText != null) songTitleText.gameObject.SetActive(show);
+        if (songSubText != null) songSubText.gameObject.SetActive(show);
+        if (!show) return;
+
+        SetText(songTitleText, string.IsNullOrEmpty(song.Title) ? song.name : song.Title); // 곡명이 비면 에셋 이름
+
+        string sub = song.Artist ?? "";
+        if (song.HasDifficulties)
+        {
+            Difficulty difficulty = SongSelection.SelectedDifficulty;
+            int i = (int)difficulty;
+            Color color = difficultyColors != null && i < difficultyColors.Length ? difficultyColors[i] : Color.white;
+            string label = "<color=#" + ColorUtility.ToHtmlStringRGB(color) + "><b>" + difficulty.ToString().ToUpperInvariant() + "</b></color>";
+            sub = sub.Length > 0 ? sub + "  ·  " + label : label; // 아티스트가 비면 난이도만
+        }
+        SetText(songSubText, sub);
     }
 
     // 랭크별 글자 색 (곡 선택 화면 SongSelectScreen.RankColor와 같은 값). 결과 없음("-")은 D와 같은 회색.

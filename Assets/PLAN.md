@@ -16,7 +16,7 @@
 | 3 | 노트 배속 설정 | note_speed_plan.md | 확인 |
 | 4 | 점수 및 콤보 | score_combo_plan.md | 확인 |
 | 5 | 롱노트 | long_note_plan.md | 확인 |
-| 6 | 게임 결과 화면 | result_screen_plan.md | 확인 |
+| 6 | 게임 결과 화면 | result_screen_plan.md | 미확인 |
 | 7 | 곡 선택 화면 | song_select_plan.md | 확인 |
 | 8 | 자동 플레이(AUTO TEST) | auto_play_plan.md | 확인 |
 | 9 | FULL COMBO / ALL PERFECT | full_combo_plan.md | 미작성 |
@@ -48,8 +48,7 @@
 | 1 | 인게임 UI/UX | ingame_ui_ux_plan.md | 확인 |
 | 2 | 곡 선택 UI/UX | song_select_ui_ux_plan.md | 확인 |
 | 3 | 결과 화면 UI/UX | result_ui_ux_plan.md | 확인 |
-| 4 | 결과 화면 곡 정보 표시 | result_song_info_plan.md | 미작성 |
-| 5 | 타이틀(메인) 화면 | title_screen_plan.md | 미작성 |
+| 4 | 타이틀(메인) 화면 | title_screen_plan.md | 미작성 |
 
 ## 3. 관리 규칙
 
