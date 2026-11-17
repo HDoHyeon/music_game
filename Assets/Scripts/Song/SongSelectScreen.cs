@@ -33,7 +33,13 @@ public class SongSelectScreen : MonoBehaviour
         new Color(0.6f, 0.1f, 0.1f, 1f)    // Hard 빨강
     };
     [SerializeField] private Color difficultyNormalColor = new Color(0.12f, 0.15f, 0.22f, 1f); // 선택 안 된 난이도 버튼 색
-    [SerializeField] private Text recordText;             // 선택 곡·난이도의 BEST SCORE / RANK / COMBO (없으면 NO RECORD)
+    [SerializeField] private Text recordText;             // 기록이 없을 때 "NO RECORD" (기록 칸이 연결되지 않았으면 3줄 문자열로 대신 표시)
+    [SerializeField] private GameObject bestValuesGroup;  // 기록이 있을 때만 보이는 기록 칸 묶음 (점수·랭크·콤보)
+    [SerializeField] private Text bestScoreText;          // 최고 점수 값 (예: 263,200)
+    [SerializeField] private Text bestRankText;           // 최고 랭크 (랭크별 색)
+    [SerializeField] private Text bestComboText;          // 최고 콤보 값
+    [SerializeField] private Color songLabelColor = new Color(0.8f, 0.82f, 0.9f, 1f);          // 곡 버튼 기본 글자색
+    [SerializeField] private Color songSelectedLabelColor = new Color(0.08f, 0.08f, 0.13f, 1f); // 선택된 곡 버튼 글자색
     [SerializeField] private AudioSource previewSource;   // 곡 미리듣기 전용 (인게임 음악과 별개, 반복 없음)
     [SerializeField] private string settingsSceneName = "SettingsScene";
     [SerializeField] private string playSceneName = "IngameScene";
@@ -111,10 +117,10 @@ public class SongSelectScreen : MonoBehaviour
         UpdateSpeedText();
     }
 
-    // 현재 배속을 화면에 표시한다.
+    // 현재 배속을 화면에 표시한다. 값만 "x5.0" ("NOTE SPEED" 라벨은 씬의 고정 글자)
     private void UpdateSpeedText()
     {
-        SetText(speedText, NoteSpeed.Label);
+        SetText(speedText, "x" + NoteSpeed.Value.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture));
     }
 
     // 설정 화면으로 이동한다. 돌아왔을 때 지금 고른 곡이 선택되도록 SongSelection.Selected에 넣어 둔다.
@@ -146,7 +152,16 @@ public class SongSelectScreen : MonoBehaviour
         bool changed = nextIndex != selectedIndex; // 처음 선택(-1에서 바뀜)도 변경으로 본다
         selectedIndex = nextIndex;
         for (int i = 0; i < songButtons.Count; i++)
-            songButtons[i].image.color = i == selectedIndex ? selectedColor : normalColor;
+        {
+            bool isSelected = i == selectedIndex;
+            songButtons[i].image.color = isSelected ? selectedColor : normalColor;
+            Text label = songButtons[i].GetComponentInChildren<Text>();
+            if (label != null)
+            {
+                label.color = isSelected ? songSelectedLabelColor : songLabelColor; // 선택 곡은 어두운 굵은 글자
+                label.fontStyle = isSelected ? FontStyle.Bold : FontStyle.Normal;
+            }
+        }
 
         SongData song = songs[selectedIndex];
         if (changed) PlayPreview(song);
@@ -169,18 +184,46 @@ public class SongSelectScreen : MonoBehaviour
         bool hasDifficulties = song != null && song.HasDifficulties;
         if (difficultyGroup != null) difficultyGroup.SetActive(hasDifficulties);
         int selected = (int)SongSelection.SelectedDifficulty;
+        // 난이도 버튼: 선택 = 난이도 색으로 채우고 흰 글자 / 비선택 = 어두운 바탕에 난이도 색 글자·테두리(Outline)
         for (int i = 0; i < difficultyButtons.Length; i++)
-            if (difficultyButtons[i] != null)
-                difficultyButtons[i].image.color = i == selected ? difficultyColors[i] : difficultyNormalColor;
+        {
+            if (difficultyButtons[i] == null) continue;
+            bool isSelected = i == selected;
+            difficultyButtons[i].image.color = isSelected ? difficultyColors[i] : difficultyNormalColor;
+            Text label = difficultyButtons[i].GetComponentInChildren<Text>();
+            if (label != null) label.color = isSelected ? Color.white : difficultyColors[i];
+            Outline outline = difficultyButtons[i].GetComponent<Outline>();
+            if (outline != null)
+            {
+                outline.enabled = !isSelected;
+                outline.effectColor = difficultyColors[i];
+            }
+        }
 
         // 기록: 해당 곡·난이도 키 1개만 읽는다
-        if (recordText != null)
+        PlayRecord record = song != null ? PlayRecordStore.Load(song, SongSelection.SelectedDifficulty) : null;
+        bool hasRecord = record != null && record.HasRecord;
+        string rank = hasRecord && !string.IsNullOrEmpty(record.bestRank) ? record.bestRank : "-"; // 랭크가 빠진 기록은 "-"
+        if (bestValuesGroup != null)
         {
-            PlayRecord record = song != null ? PlayRecordStore.Load(song, SongSelection.SelectedDifficulty) : null;
-            recordText.text = record != null && record.HasRecord
+            // 기록 칸이 있으면 칸별로 표시, 없으면 NO RECORD만
+            bestValuesGroup.SetActive(hasRecord);
+            if (hasRecord)
+            {
+                SetText(bestScoreText, record.bestScore.ToString("N0", System.Globalization.CultureInfo.InvariantCulture));
+                SetText(bestRankText, rank);
+                if (bestRankText != null) bestRankText.color = RankColor(rank);
+                SetText(bestComboText, record.bestCombo.ToString("N0", System.Globalization.CultureInfo.InvariantCulture));
+            }
+            if (recordText != null) recordText.gameObject.SetActive(!hasRecord);
+            SetText(recordText, "NO RECORD");
+        }
+        else if (recordText != null)
+        {
+            // 기록 칸이 연결되지 않은 경우 예전처럼 3줄 문자열
+            recordText.text = hasRecord
                 ? "BEST SCORE  " + record.bestScore.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)
-                  + "\nBEST RANK  " + (string.IsNullOrEmpty(record.bestRank) ? "-" : record.bestRank) // 랭크가 빠진 기록은 "-"
-                  + "\nBEST COMBO  " + record.bestCombo
+                  + "\nBEST RANK  " + rank + "\nBEST COMBO  " + record.bestCombo
                 : "NO RECORD";
         }
 
@@ -227,17 +270,31 @@ public class SongSelectScreen : MonoBehaviour
 
         SetText(titleText, song != null ? song.Title : "-");
         SetText(artistText, song != null ? song.Artist : "");
-        SetText(notesText, "NOTES  " + (notes != null ? notes.Count : 0));
+        SetText(notesText, (notes != null ? notes.Count : 0).ToString()); // 값만 ("NOTES" 라벨은 씬의 고정 글자)
 
         double end = 0;
         if (notes != null)
             foreach (NoteData note in notes)
                 end = System.Math.Max(end, note.IsLong ? note.EndTime : note.Time);
         int seconds = Mathf.CeilToInt((float)end);
-        SetText(lengthText, "LENGTH  " + seconds / 60 + ":" + (seconds % 60).ToString("00"));
+        SetText(lengthText, seconds / 60 + ":" + (seconds % 60).ToString("00")); // 값만 ("LENGTH" 라벨은 씬의 고정 글자)
 
         SetText(messageText, canStart ? "" : "CANNOT PLAY");
         if (startButton != null) startButton.interactable = canStart;
+    }
+
+    // 랭크별 색: SS 금색, S 주황, A 하늘, B 연두, C 연회색, D·기타 회색
+    private static Color RankColor(string rank)
+    {
+        switch (rank)
+        {
+            case "SS": return new Color(1f, 0.84f, 0.29f, 1f);
+            case "S": return new Color(0.97f, 0.58f, 0.12f, 1f);
+            case "A": return new Color(0.36f, 0.75f, 1f, 1f);
+            case "B": return new Color(0.5f, 0.88f, 0.5f, 1f);
+            case "C": return new Color(0.75f, 0.77f, 0.82f, 1f);
+            default: return new Color(0.54f, 0.56f, 0.63f, 1f);
+        }
     }
 
     private static void SetText(Text text, string value)
