@@ -51,6 +51,12 @@ public class PlayResult
     // 정확도(%): 판정 가중 평균 (Perfect 100 / Great 70 / Good 30 / Miss 0, 틱 제외)
     public float Accuracy => Total == 0 ? 0f : (Perfect * 100f + Great * 70f + Good * 30f) / Total;
 
+    // FULL COMBO: 판정이 1개 이상이고 Miss가 없음 (콤보는 Miss로만 끊긴다. 롱노트 중간 이탈·시작 놓침도 Miss로 집계됨)
+    public bool IsFullCombo => Total > 0 && Miss == 0;
+
+    // ALL PERFECT: 판정이 1개 이상이고 모두 Perfect (아래 Rank "SS" 조건과 같음). 틱은 판정 개수가 아니므로 제외
+    public bool IsAllPerfect => Total > 0 && Perfect == Total;
+
     // 랭크: 전부 Perfect면 SS, 그 외 정확도 기준 S 95 / A 90 / B 80 / C 70 / D 그 미만
     public string Rank => Total > 0 && Perfect == Total ? "SS"
         : Accuracy >= 95f ? "S"

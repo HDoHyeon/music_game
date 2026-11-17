@@ -9,6 +9,7 @@ public class PlayRecord
     public int bestCombo;
     public float bestAccuracy;
     public string bestRank = "";
+    public bool fullCombo; // FULL COMBO를 한 번이라도 달성했는지 (한 번 true면 계속 true). 이 필드가 없는 예전 기록은 false로 읽힌다
 
     public int lastScore;
     public int lastCombo;
@@ -21,6 +22,11 @@ public class PlayRecord
 
     public bool HasRecord => playCount > 0;
 
+    // 표시용 달성 상태. ALL PERFECT는 최고 랭크 SS와 같은 조건(PlayResult.Rank)이라 따로 저장하지 않는다.
+    // (SS 랭크 기준을 바꾸면 이 판단도 같이 고쳐야 한다 — full_combo_plan.md)
+    public bool IsAllPerfect => bestRank == "SS";
+    public bool IsFullCombo => fullCombo || IsAllPerfect; // ALL PERFECT면 FULL COMBO도 달성
+
     // 정상 완료 1회를 반영한다. 최고 점수가 올라갔으면(첫 기록 포함) true (결과 화면 NEW BEST)
     public bool Apply(PlayResult result)
     {
@@ -29,6 +35,7 @@ public class PlayRecord
         if (result.MaxCombo > bestCombo) bestCombo = result.MaxCombo;
         if (result.Accuracy > bestAccuracy) bestAccuracy = result.Accuracy;
         if (PlayRecordStore.RankOrder(result.Rank) > PlayRecordStore.RankOrder(bestRank)) bestRank = result.Rank;
+        if (result.IsFullCombo) fullCombo = true; // 달성했을 때만 true로 (낮은 성적으로 지워지지 않음)
 
         lastScore = result.Score;
         lastCombo = result.MaxCombo;

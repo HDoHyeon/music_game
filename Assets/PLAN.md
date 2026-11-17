@@ -19,7 +19,7 @@
 | 6 | 게임 결과 화면 | result_screen_plan.md | 미확인 |
 | 7 | 곡 선택 화면 | song_select_plan.md | 확인 |
 | 8 | 자동 플레이(AUTO TEST) | auto_play_plan.md | 확인 |
-| 9 | FULL COMBO / ALL PERFECT | full_combo_plan.md | 미작성 |
+| 9 | FULL COMBO / ALL PERFECT | full_combo_plan.md | 미확인 |
 | 10 | FAST / SLOW 판정 표시 | fast_slow_plan.md | 미작성 |
 | 11 | 타격음(키 사운드) | key_sound_plan.md | 미작성 |
 | 12 | 게이지(HP) 및 클리어·실패 | gauge_clear_plan.md | 미작성 |

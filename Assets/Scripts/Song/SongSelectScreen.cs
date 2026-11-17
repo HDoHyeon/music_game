@@ -38,6 +38,9 @@ public class SongSelectScreen : MonoBehaviour
     [SerializeField] private Text bestScoreText;          // 최고 점수 값 (예: 263,200)
     [SerializeField] private Text bestRankText;           // 최고 랭크 (랭크별 색)
     [SerializeField] private Text bestComboText;          // 최고 콤보 값
+    [SerializeField] private Text bestAchievementText;    // 기록 카드 오른쪽 위: ALL PERFECT / FULL COMBO (없으면 숨김)
+    [SerializeField] private Color allPerfectColor = new Color(0.31f, 0.85f, 1f);  // #4FD8FF (결과 화면과 같은 색)
+    [SerializeField] private Color fullComboColor = new Color(0.24f, 0.86f, 0.42f); // #3DDC6A
     [SerializeField] private Color songLabelColor = new Color(0.8f, 0.82f, 0.9f, 1f);          // 곡 버튼 기본 글자색
     [SerializeField] private Color songSelectedLabelColor = new Color(0.08f, 0.08f, 0.13f, 1f); // 선택된 곡 버튼 글자색
     [SerializeField] private AudioSource previewSource;   // 곡 미리듣기 전용 (인게임 음악과 별개, 반복 없음)
@@ -224,6 +227,16 @@ public class SongSelectScreen : MonoBehaviour
                 SetText(bestRankText, rank);
                 if (bestRankText != null) bestRankText.color = RankColor(rank);
                 SetText(bestComboText, record.bestCombo.ToString("N0", System.Globalization.CultureInfo.InvariantCulture));
+
+                // 달성 상태: ALL PERFECT(최고 랭크 SS) 우선, 아니면 FULL COMBO, 둘 다 아니면 숨김
+                bool allPerfect = record.IsAllPerfect;
+                bool fullCombo = record.IsFullCombo;
+                if (bestAchievementText != null)
+                {
+                    bestAchievementText.gameObject.SetActive(allPerfect || fullCombo);
+                    bestAchievementText.text = allPerfect ? "ALL PERFECT" : "FULL COMBO";
+                    bestAchievementText.color = allPerfect ? allPerfectColor : fullComboColor;
+                }
             }
             if (recordText != null) recordText.gameObject.SetActive(!hasRecord);
             SetText(recordText, "NO RECORD");

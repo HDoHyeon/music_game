@@ -16,6 +16,9 @@ public class ResultScreen : MonoBehaviour
     [SerializeField] private Text missCountText;
     [SerializeField] private Text newBestText;   // 최고 점수를 갱신했으면 NEW BEST (아니면 숨김)
     [SerializeField] private Text bestText;      // 저장된 최고 점수 (이번 결과와 구분)
+    [SerializeField] private Text achievementText; // ALL PERFECT / FULL COMBO (랭크 아래, 둘 다면 ALL PERFECT만)
+    [SerializeField] private Color allPerfectColor = new Color(0.31f, 0.85f, 1f);  // #4FD8FF (PERFECT 판정 색)
+    [SerializeField] private Color fullComboColor = new Color(0.24f, 0.86f, 0.42f); // #3DDC6A (GREAT 판정 색)
     [SerializeField] private Text songTitleText; // 플레이한 곡명 (오른쪽 위)
     [SerializeField] private Text songSubText;   // 아티스트 · 난이도 (난이도는 난이도 색)
     [SerializeField] private Color[] difficultyColors = new Color[3]; // Easy/Normal/Hard 글자 색 (곡 선택 화면과 같은 값)
@@ -50,6 +53,7 @@ public class ResultScreen : MonoBehaviour
             SetText(bestText, "");
             if (newBestText != null) newBestText.gameObject.SetActive(false);
             ShowSongInfo(null); // 결과가 없으면 곡 정보도 숨긴다
+            ShowAchievement(false, false);
             return;
         }
 
@@ -83,6 +87,18 @@ public class ResultScreen : MonoBehaviour
         // 곡 정보: 결과 씬은 플레이 종료(ResultTransition)로만 열리고 그 사이 선택 값이 바뀌지 않으므로,
         // 지금의 선택 곡·난이도가 방금 플레이한 곡이다. 곡 선택 없이 플레이했으면 null → 숨김.
         ShowSongInfo(SongSelection.Selected);
+
+        // 이번 플레이의 달성 상태 (AUTO TEST도 표시. 기록 저장 여부는 ResultTransition 규칙 그대로)
+        ShowAchievement(result.IsAllPerfect, result.IsFullCombo);
+    }
+
+    // ALL PERFECT 우선으로 한 줄만 표시한다. 둘 다 아니면 숨긴다.
+    private void ShowAchievement(bool allPerfect, bool fullCombo)
+    {
+        if (achievementText == null) return;
+        achievementText.gameObject.SetActive(allPerfect || fullCombo);
+        achievementText.text = allPerfect ? "ALL PERFECT" : "FULL COMBO";
+        achievementText.color = allPerfect ? allPerfectColor : fullComboColor;
     }
 
     // 곡명과 "아티스트 · 난이도"를 표시한다. song이 null이면 둘 다 숨긴다.
