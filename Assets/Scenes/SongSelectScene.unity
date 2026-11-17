@@ -3605,7 +3605,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: "\u2191\u2193 \uACE1 \uC120\uD0DD  \xB7  ENTER \uC2DC\uC791  \xB7  \u2190\u2192 \uBC30\uC18D"
+  m_Text: "\u2191\u2193 \uACE1 \uC120\uD0DD  \xB7  \u2190\u2192 \uB09C\uC774\uB3C4  \xB7  ENTER \uC2DC\uC791"
 --- !u!222 &1686982322
 CanvasRenderer:
   m_ObjectHideFlags: 0

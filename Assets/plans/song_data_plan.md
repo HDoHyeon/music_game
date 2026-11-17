@@ -65,7 +65,7 @@
 ### 사용자 결정 (2026-11-16, 추천안 확정)
 1. **예시 이미지 범위**: 기존 곡 정보 글자는 그대로 두고 DIFFICULTY 글자와 Easy/Normal/Hard 버튼만 이미지처럼 추가한다. 곡 정보 카드·아이콘은 이번 범위 밖(필요하면 PLAN.md 2-4 #2 곡 선택 UI/UX에서).
 2. **난이도 기억**: 곡을 바꿔도 마지막으로 고른 난이도를 유지한다(처음은 Normal).
-3. **조작**: 난이도는 마우스 클릭으로만 바꾼다(←→는 배속).
+3. **조작**: 난이도는 마우스 클릭으로만 바꾼다(←→는 배속). → **2026-11-17 변경**: ←→로도 난이도를 바꾼다 (8절).
 
 ## 4. 상세 구현 방법 및 필요한 코드 스니펫
 ### 4.1 데이터 구조와 호환성
@@ -214,9 +214,60 @@ public void SelectDifficulty(int difficulty)
   - CANNOT PLAY 위치를 보려고 Play 중 Huimang의 hardChart를 메모리에서 비웠는데, ScriptableObject 에셋은 Play를 끝내도 값이 돌아오지 않아 비어 있는 상태가 남았다. 바로 huimang_chart.txt로 다시 연결해 저장했고, 파일에서 kick·희망 난이도 칸 6개가 모두 올바른 채보를 가리키는지 확인했다.
 - 미해결: 난이도별 실제 플레이 체감·싱크(DF-14)는 사용자 확인 필요.
 
+## 8. 추가 변경: ←→ 키를 난이도 조절로 (2026-11-17 사용자 요청, 추천안 확정)
+### 8.1 요구사항과 결정
+- 곡 선택 화면의 ←→를 배속 변경에서 난이도 변경으로 바꾼다.
+
+| 항목 | 확정값 |
+|---|---|
+| ← / → | 한 단계 쉬운 쪽 / 어려운 쪽 (Easy ↔ Normal ↔ Hard). 마우스 버튼과 같은 `SelectDifficulty` 사용 |
+| 양 끝 | Easy에서 ←, Hard에서 →는 그대로 (넘어가지 않음, ↑↓ 곡 목록과 같은 방식) |
+| 난이도 없는 곡 (Test Song 1~3) | ←→ 무시. 숨겨진 난이도 값이 바뀌어 다음 곡 난이도가 달라지는 것을 막음 |
+| 배속 | 키보드로는 바꾸지 않음. 화면의 −/+ 버튼으로만 (배속 저장·범위는 그대로) |
+| 조작 안내 | `↑↓ 곡 선택 · ←→ 난이도 · ENTER 시작` |
+
+- 영향: `note_speed_plan.md`(확인 완료)의 "키보드 ←→로 배속" 규칙이 바뀐다. 해당 계획서에 변경을 기록한다.
+
+### 8.2 수정 대상
+| 파일 | 내용 |
+|---|---|
+| `Assets/Scripts/Song/SongSelectScreen.cs` | `Update`의 ←→ 처리를 난이도 변경으로, 주석 수정 |
+| `Assets/Scenes/SongSelectScene.unity` | `KeyHintText` 문구만 변경 |
+
+```csharp
+// ←→: 난이도를 한 단계씩 (난이도가 없는 곡은 무시, 양 끝에서는 그대로)
+if (keyboard.leftArrowKey.wasPressedThisFrame) StepDifficulty(-1);
+if (keyboard.rightArrowKey.wasPressedThisFrame) StepDifficulty(1);
+
+private void StepDifficulty(int delta)
+{
+    SongData[] songs = Songs;
+    SongData song = selectedIndex >= 0 && selectedIndex < songs.Length ? songs[selectedIndex] : null;
+    if (song == null || !song.HasDifficulties) return;
+    SelectDifficulty((int)SongSelection.SelectedDifficulty + delta); // SelectDifficulty가 0~2로 제한
+}
+```
+
+### 8.3 테스트
+| # | 항목 | 방법 | 기대 결과 | 담당 | 결과 |
+|---|---|---|---|---|---|
+| DK-01 | ←→ 난이도 | kick 선택, Normal에서 ← / → 경로 호출 | Easy / Hard, 버튼 강조·노트 수 갱신 | C | 통과 (Normal 200 → ← Easy 83 → → Normal 200 → → Hard 377, 스크린샷에서 Easy 버튼 채움 강조) |
+| DK-02 | 양 끝 | Easy에서 ←, Hard에서 → | 그대로 | C | 통과 (Easy 유지 83, Hard 유지 377) |
+| DK-03 | 난이도 없는 곡 | Test Song 1에서 ←→ | 선택 난이도 값 변화 없음 | C | 통과 (→→← 후에도 Easy 그대로, kick으로 돌아와도 Easy) |
+| DK-04 | 배속 | ←→ 후 배속 값 / −·+ 버튼 | ←→로는 그대로, 버튼으로는 바뀜 | C | 통과 (←→ 후 x5.0 유지, − 버튼 x4.5, + 버튼 x5.0, 저장값 5 유지) |
+| DK-05 | 미리듣기 | ←→로 난이도 변경 | 미리듣기 처음부터 재시작 없음 | C | 통과 (kick 1.09초 → ←← 후 2.28초, 이어서 재생) |
+| DK-06 | 실제 키 입력 | 키보드 ←→ | 위와 같음 | U | 미검증 (키 주입이 `wasPressedThisFrame`에 반영되지 않아 Claude는 같은 함수 경로(`StepDifficulty`)로만 확인) |
+
+### 8.4 검증 결과 (2026-11-17)
+- 컴파일 에러 0건, Play 모드 에러·경고 0건.
+- `KeyHintText`: `↑↓ 곡 선택  ·  ←→ 난이도  ·  ENTER 시작` (기존과 같은 `  ·  ` 간격). 씬 변경은 이 문구 1줄뿐 (git diff 확인).
+- DK-01~05 C 통과. DK-06(실제 키보드 ←→)은 사용자 확인 필요.
+- 테스트 스크린샷은 확인 후 삭제. 배속 저장값(5)은 테스트 전후 같음.
+
 ### 변경 이력
 | 날짜 | 내용 |
 |---|---|
 | 2026-11-16 | GPT 작업 프롬프트·예시 이미지(사용자 제공)를 바탕으로 로컬 소스·씬·채보 분석 후 최초 작성 |
 | 2026-11-16 | 사용자 결정 반영(추천안 확정) |
 | 2026-11-16 | 구현 및 검증 (4.6·6·7절) |
+| 2026-11-17 | ←→ 키를 배속에서 난이도 조절로 변경 (8절, 사용자 요청·추천안 확정) |

@@ -91,7 +91,7 @@ public class SongSelectScreen : MonoBehaviour
         Select(initial >= 0 ? initial : 0);
     }
 
-    // 키보드: ↑↓로 선택 이동, Enter로 시작, ←→로 배속 변경
+    // 키보드: ↑↓로 선택 이동, Enter로 시작, ←→로 난이도 변경 (배속은 −/+ 버튼으로만)
     private void Update()
     {
         Keyboard keyboard = Keyboard.current;
@@ -99,8 +99,18 @@ public class SongSelectScreen : MonoBehaviour
         if (keyboard.upArrowKey.wasPressedThisFrame) Select(selectedIndex - 1);
         if (keyboard.downArrowKey.wasPressedThisFrame) Select(selectedIndex + 1);
         if (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame) StartSong();
-        if (keyboard.leftArrowKey.wasPressedThisFrame) SpeedDown();
-        if (keyboard.rightArrowKey.wasPressedThisFrame) SpeedUp();
+        if (keyboard.leftArrowKey.wasPressedThisFrame) StepDifficulty(-1);
+        if (keyboard.rightArrowKey.wasPressedThisFrame) StepDifficulty(1);
+    }
+
+    // 난이도를 한 단계 바꾼다 (−1: 쉬운 쪽, +1: 어려운 쪽). 양 끝에서는 그대로 (SelectDifficulty가 0~2로 제한).
+    // 난이도가 없는 곡은 무시한다 — 숨겨진 선택 난이도가 바뀌어 다음 곡의 난이도가 달라지지 않도록.
+    private void StepDifficulty(int delta)
+    {
+        SongData[] songs = Songs;
+        SongData song = selectedIndex >= 0 && selectedIndex < songs.Length ? songs[selectedIndex] : null;
+        if (song == null || !song.HasDifficulties) return;
+        SelectDifficulty((int)SongSelection.SelectedDifficulty + delta);
     }
 
     // 노트 배속을 한 단계(0.5) 내린다. (x1.0 미만으로는 내려가지 않음, 저장됨)
