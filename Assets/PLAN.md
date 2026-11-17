@@ -26,12 +26,12 @@
 | 1 | 오프셋(싱크 보정) 설정 | offset_setting_plan.md | 확인 |
 | 2 | 일시정지 및 재시작 | pause_restart_plan.md | 확인 |
 | 3 | 곡 및 난이도 데이터 관리 | song_data_plan.md | 확인 |
-| 4 | 채보 데이터 관리 | chart_data_plan.md | 미작성 |
+| 4 | 채보 데이터 관리 | chart_data_plan.md | 미확인 |
 
 ### 2-3. 사용자 편의성 및 기록 관리
 | 순서 | 기능 | 계획서 | 상태 |
 |---|---|---|---|
-| 1 | 플레이 기록 저장 | record_save_plan.md | 미확인 |
+| 1 | 플레이 기록 저장 | record_save_plan.md | 확인 |
 | 2 | 사운드 및 볼륨 설정 | audio_setting_plan.md | 확인 |
 | 3 | 설정 화면 통합 | settings_save_plan.md | 확인 |
 
