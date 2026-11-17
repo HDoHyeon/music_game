@@ -19,6 +19,10 @@
 | 6 | 게임 결과 화면 | result_screen_plan.md | 확인 |
 | 7 | 곡 선택 화면 | song_select_plan.md | 확인 |
 | 8 | 자동 플레이(AUTO TEST) | auto_play_plan.md | 확인 |
+| 9 | FULL COMBO / ALL PERFECT | full_combo_plan.md | 미작성 |
+| 10 | FAST / SLOW 판정 표시 | fast_slow_plan.md | 미작성 |
+| 11 | 타격음(키 사운드) | key_sound_plan.md | 미작성 |
+| 12 | 게이지(HP) 및 클리어·실패 | gauge_clear_plan.md | 미작성 |
 
 ### 2-2. 플레이 안정성 및 데이터 구조
 | 순서 | 기능 | 계획서 | 상태 |
@@ -27,6 +31,7 @@
 | 2 | 일시정지 및 재시작 | pause_restart_plan.md | 확인 |
 | 3 | 곡 및 난이도 데이터 관리 | song_data_plan.md | 확인 |
 | 4 | 채보 데이터 관리 | chart_data_plan.md | 확인 |
+| 5 | 채보 에디터 | chart_editor_plan.md | 미작성 |
 
 ### 2-3. 사용자 편의성 및 기록 관리
 | 순서 | 기능 | 계획서 | 상태 |
@@ -34,6 +39,8 @@
 | 1 | 플레이 기록 저장 | record_save_plan.md | 확인 |
 | 2 | 사운드 및 볼륨 설정 | audio_setting_plan.md | 확인 |
 | 3 | 설정 화면 통합 | settings_save_plan.md | 확인 |
+| 4 | 곡 목록 정렬 및 스크롤 | song_list_management_plan.md | 미작성 |
+| 5 | 화면 설정 | display_settings_plan.md | 미작성 |
 
 ### 2-4. UI/UX
 | 순서 | 기능 | 계획서 | 상태 |
@@ -41,6 +48,8 @@
 | 1 | 인게임 UI/UX | ingame_ui_ux_plan.md | 확인 |
 | 2 | 곡 선택 UI/UX | song_select_ui_ux_plan.md | 확인 |
 | 3 | 결과 화면 UI/UX | result_ui_ux_plan.md | 확인 |
+| 4 | 결과 화면 곡 정보 표시 | result_song_info_plan.md | 미작성 |
+| 5 | 타이틀(메인) 화면 | title_screen_plan.md | 미작성 |
 
 ## 3. 관리 규칙
 
