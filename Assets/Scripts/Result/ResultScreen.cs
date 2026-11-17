@@ -10,6 +10,8 @@ public class ResultScreen : MonoBehaviour
     [SerializeField] private Text maxComboText;
     [SerializeField] private Text accuracyText;
     [SerializeField] private Text judgementText; // Perfect/Great/Good/Miss 개수
+    [SerializeField] private Text newBestText;   // 최고 점수를 갱신했으면 NEW BEST (아니면 숨김)
+    [SerializeField] private Text bestText;      // 저장된 최고 점수 (이번 결과와 구분)
     [SerializeField] private Button retryButton;
     [SerializeField] private Button songSelectButton;
     [SerializeField] private string playSceneName = "IngameScene";
@@ -30,6 +32,8 @@ public class ResultScreen : MonoBehaviour
             SetText(maxComboText, "");
             SetText(accuracyText, "");
             SetText(judgementText, "");
+            SetText(bestText, "");
+            if (newBestText != null) newBestText.gameObject.SetActive(false);
             return;
         }
 
@@ -42,6 +46,10 @@ public class ResultScreen : MonoBehaviour
             "GREAT  " + result.Great + "\n" +
             "GOOD  " + result.Good + "\n" +
             "MISS  " + result.Miss);
+
+        // 기록: AUTO TEST·곡 선택 없이 실행한 플레이는 저장되지 않으므로 NEW BEST가 나오지 않는다
+        if (newBestText != null) newBestText.gameObject.SetActive(result.IsNewBest);
+        SetText(bestText, "BEST  " + (result.HasBest ? result.BestScore.ToString("N0", System.Globalization.CultureInfo.InvariantCulture) : "-"));
     }
 
     // 다시 하기: 플레이 씬을 처음부터 다시 불러온다.

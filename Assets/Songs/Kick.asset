@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: faa8c8049871ee64ea73e06113a44414, type: 3}
   m_Name: Kick
   m_EditorClassIdentifier: Assembly-CSharp::SongData
+  songId: kick
   title: kick
   artist: claude_ai
   chart: {fileID: 4900000, guid: 04bb9873e91fd474694acefa1a0d4d9f, type: 3}

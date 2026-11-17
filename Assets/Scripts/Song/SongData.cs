@@ -5,6 +5,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "SongData", menuName = "music_game/Song Data")]
 public class SongData : ScriptableObject
 {
+    [SerializeField] private string songId; // 기록 저장용 고유 ID (예: kick). 제목·목록 순서와 무관하며 한 번 정하면 바꾸지 않는다
     [SerializeField] private string title;
     [SerializeField] private string artist;
     [SerializeField] private TextAsset chart; // "시각,레인[,종료시각]" 형식 채보
@@ -15,6 +16,8 @@ public class SongData : ScriptableObject
     [SerializeField] private TextAsset normalChart;
     [SerializeField] private TextAsset hardChart;
 
+    // 기록 키에 쓰는 ID. songId가 비어 있으면 에셋 이름을 대신 쓴다 (기록이 사라지지 않게)
+    public string RecordId => string.IsNullOrEmpty(songId) ? name : songId;
     public string Title => title;
     public string Artist => artist;
     public TextAsset Chart => chart;

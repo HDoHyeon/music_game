@@ -17,23 +17,23 @@
 | 4 | 점수 및 콤보 | score_combo_plan.md | 확인 |
 | 5 | 롱노트 | long_note_plan.md | 확인 |
 | 6 | 게임 결과 화면 | result_screen_plan.md | 확인 |
-| 7 | 곡 선택 화면 | song_select_plan.md | 미확인 |
+| 7 | 곡 선택 화면 | song_select_plan.md | 확인 |
 | 8 | 자동 플레이(AUTO TEST) | auto_play_plan.md | 확인 |
 
 ### 2-2. 플레이 안정성 및 데이터 구조
 | 순서 | 기능 | 계획서 | 상태 |
 |---|---|---|---|
-| 1 | 오프셋(싱크 보정) 설정 | offset_setting_plan.md | 미확인 |
+| 1 | 오프셋(싱크 보정) 설정 | offset_setting_plan.md | 확인 |
 | 2 | 일시정지 및 재시작 | pause_restart_plan.md | 확인 |
-| 3 | 곡 및 난이도 데이터 관리 | song_data_plan.md | 미확인 |
+| 3 | 곡 및 난이도 데이터 관리 | song_data_plan.md | 확인 |
 | 4 | 채보 데이터 관리 | chart_data_plan.md | 미작성 |
 
 ### 2-3. 사용자 편의성 및 기록 관리
 | 순서 | 기능 | 계획서 | 상태 |
 |---|---|---|---|
-| 1 | 플레이 기록 저장 | record_save_plan.md | 미작성 |
-| 2 | 사운드 및 볼륨 설정 | audio_setting_plan.md | 미확인 |
-| 3 | 설정 화면 통합 | settings_save_plan.md | 미확인 |
+| 1 | 플레이 기록 저장 | record_save_plan.md | 미확인 |
+| 2 | 사운드 및 볼륨 설정 | audio_setting_plan.md | 확인 |
+| 3 | 설정 화면 통합 | settings_save_plan.md | 확인 |
 
 ### 2-4. UI/UX
 | 순서 | 기능 | 계획서 | 상태 |

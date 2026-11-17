@@ -63,7 +63,27 @@ public class ResultTransition : MonoBehaviour
         loading = true;
         int score = scoreCombo != null ? scoreCombo.Score : 0;
         int maxCombo = scoreCombo != null ? scoreCombo.MaxCombo : 0;
-        PlayResult.Last = new PlayResult(score, maxCombo, judgedCounts[0], judgedCounts[1], judgedCounts[2], judgedCounts[3]);
+        PlayResult result = new PlayResult(score, maxCombo, judgedCounts[0], judgedCounts[1], judgedCounts[2], judgedCounts[3]);
+
+        // 플레이 기록: 곡을 알고(곡 선택에서 시작) AUTO TEST를 쓰지 않은 플레이만 저장한다.
+        // 정상 완료는 이 지점 하나뿐이고 loading으로 1번만 실행되므로, 중도 이탈·결과 화면 재진입으로 저장되지 않는다.
+        SongData song = SongSelection.Selected;
+        bool autoUsed = gameplay != null && gameplay.AutoPlayUsed;
+        bool newBest = false;
+        PlayRecord record = null;
+        if (song != null)
+        {
+            Difficulty difficulty = SongSelection.SelectedDifficulty;
+            record = PlayRecordStore.Load(song, difficulty);
+            if (!autoUsed)
+            {
+                newBest = record.Apply(result);
+                PlayRecordStore.Save(song, difficulty, record);
+            }
+        }
+        bool hasBest = record != null && record.HasRecord;
+        PlayResult.Last = new PlayResult(score, maxCombo, judgedCounts[0], judgedCounts[1], judgedCounts[2], judgedCounts[3],
+            autoUsed, newBest, hasBest, hasBest ? record.bestScore : 0);
         SceneManager.LoadScene(resultSceneName);
     }
 

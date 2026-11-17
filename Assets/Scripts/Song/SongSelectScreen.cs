@@ -33,6 +33,7 @@ public class SongSelectScreen : MonoBehaviour
         new Color(0.6f, 0.1f, 0.1f, 1f)    // Hard 빨강
     };
     [SerializeField] private Color difficultyNormalColor = new Color(0.12f, 0.15f, 0.22f, 1f); // 선택 안 된 난이도 버튼 색
+    [SerializeField] private Text recordText;             // 선택 곡·난이도의 BEST SCORE / RANK / COMBO (없으면 NO RECORD)
     [SerializeField] private AudioSource previewSource;   // 곡 미리듣기 전용 (인게임 음악과 별개, 반복 없음)
     [SerializeField] private string settingsSceneName = "SettingsScene";
     [SerializeField] private string playSceneName = "IngameScene";
@@ -171,6 +172,17 @@ public class SongSelectScreen : MonoBehaviour
         for (int i = 0; i < difficultyButtons.Length; i++)
             if (difficultyButtons[i] != null)
                 difficultyButtons[i].image.color = i == selected ? difficultyColors[i] : difficultyNormalColor;
+
+        // 기록: 해당 곡·난이도 키 1개만 읽는다
+        if (recordText != null)
+        {
+            PlayRecord record = song != null ? PlayRecordStore.Load(song, SongSelection.SelectedDifficulty) : null;
+            recordText.text = record != null && record.HasRecord
+                ? "BEST SCORE  " + record.bestScore.ToString("N0", System.Globalization.CultureInfo.InvariantCulture)
+                  + "\nBEST RANK  " + (string.IsNullOrEmpty(record.bestRank) ? "-" : record.bestRank) // 랭크가 빠진 기록은 "-"
+                  + "\nBEST COMBO  " + record.bestCombo
+                : "NO RECORD";
+        }
 
         TextAsset chart = song != null ? song.GetChart(SongSelection.SelectedDifficulty) : null;
         List<NoteData> notes = chart != null ? ChartLoader.Load(chart, laneCount) : null;

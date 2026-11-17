@@ -19,8 +19,24 @@ public class PlayResult
     public int Good { get; }
     public int Miss { get; }
 
+    // 기록 관련 (결과 화면 표시용, 점수 계산과 무관)
+    public bool AutoPlayUsed { get; }   // AUTO TEST가 켜졌던 플레이 (기록 안 함)
+    public bool IsNewBest { get; }      // 이번 결과로 저장된 최고 점수가 올라갔는지 (첫 기록 포함)
+    public bool HasBest { get; }        // 이 곡·난이도에 저장된 기록이 있는지 (이번 저장 포함)
+    public int BestScore { get; }       // 저장된 최고 점수 (이번 저장 반영 후)
+
     public PlayResult(int score, int maxCombo, int perfect, int great, int good, int miss)
+        : this(score, maxCombo, perfect, great, good, miss, false, false, false, 0)
     {
+    }
+
+    public PlayResult(int score, int maxCombo, int perfect, int great, int good, int miss,
+        bool autoPlayUsed, bool isNewBest, bool hasBest, int bestScore)
+    {
+        AutoPlayUsed = autoPlayUsed;
+        IsNewBest = isNewBest;
+        HasBest = hasBest;
+        BestScore = bestScore;
         Score = score;
         MaxCombo = maxCombo;
         Perfect = perfect;

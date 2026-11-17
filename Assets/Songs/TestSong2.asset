@@ -12,7 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: faa8c8049871ee64ea73e06113a44414, type: 3}
   m_Name: TestSong2
   m_EditorClassIdentifier: Assembly-CSharp::SongData
+  songId: test_song_2
   title: Test Song 2
   artist: Test
   chart: {fileID: 4900000, guid: 0404e1087a671cf4097c98127f72ba87, type: 3}
   music: {fileID: 0}
+  volume: 1
+  easyChart: {fileID: 0}
+  normalChart: {fileID: 0}
+  hardChart: {fileID: 0}

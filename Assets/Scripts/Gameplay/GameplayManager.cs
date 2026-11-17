@@ -85,6 +85,10 @@ public class GameplayManager : MonoBehaviour
 
     private bool UseAutoPlay => autoPlayer != null && autoPlayer.Level > 0;
 
+    // 이번 플레이 중 AUTO TEST가 한 번이라도 켜졌는지 (켰다 꺼도 true 유지). 켜졌던 플레이는 기록하지 않는다.
+    // RESTART·RETRY는 씬을 다시 불러오므로 새 플레이에서 다시 false로 시작한다.
+    public bool AutoPlayUsed { get; private set; }
+
     private void Start()
     {
         // 곡 선택 화면에서 고른 곡이 있으면 그 곡의 채보·음악으로 플레이 (없으면 인스펙터 값 사용)
@@ -108,6 +112,7 @@ public class GameplayManager : MonoBehaviour
         if (audioSource != null) audioSource.volume = AudioVolume.Music01 * (song != null ? song.Volume : 1f);
         if (UseAudioClock) audioSource.Play();
         prevSongTime = SongTime;
+        if (UseAutoPlay) AutoPlayUsed = true; // 시작부터 AUTO인 경우
     }
 
     // 게임 진행을 멈춘다: 곡 시간 고정, 음악 일시정지. 이미 정지 중이면 false.
@@ -137,6 +142,7 @@ public class GameplayManager : MonoBehaviour
     {
         // 정지 중에는 노트 생성·이동·입력·롱노트·Miss 처리를 모두 멈춘다.
         // prevSongTime도 갱신하지 않아 재개 첫 프레임에 정지 직전부터 이어서 자동 입력 구간을 처리한다.
+        if (UseAutoPlay) AutoPlayUsed = true; // 정지 중에 켜도 기록 대상에서 빠지도록 정지 검사보다 먼저 확인
         if (IsPaused) return;
 
         double songTime = SongTime;
