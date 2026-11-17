@@ -16,3 +16,7 @@ MonoBehaviour:
   artist: claude_ai
   chart: {fileID: 4900000, guid: 04bb9873e91fd474694acefa1a0d4d9f, type: 3}
   music: {fileID: 8300000, guid: 404f19a476ee416458a98808868c08f6, type: 3}
+  volume: 1
+  easyChart: {fileID: 4900000, guid: e124a2fd04b94ec448e65509211e5726, type: 3}
+  normalChart: {fileID: 4900000, guid: 04bb9873e91fd474694acefa1a0d4d9f, type: 3}
+  hardChart: {fileID: 4900000, guid: 91b03c0df2407de49b5fea0c44b72ffe, type: 3}

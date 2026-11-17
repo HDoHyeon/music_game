@@ -7,6 +7,7 @@ using UnityEngine.UI;
 // 곡 선택 화면: 곡 목록 버튼을 만들고, 선택한 곡 정보를 보여 주며, START(또는 Enter)로 플레이 씬을 시작한다.
 // 조작: 마우스 클릭으로 선택, ↑↓로 선택 이동, Enter로 시작, ←→ 또는 -/+ 버튼으로 노트 배속 변경.
 // 곡을 고르면 그 곡의 음악(SongData.Music)을 처음부터 한 번 미리듣기로 재생한다 (음악 없는 곡은 무음).
+// 난이도 곡(kick·희망)이면 Easy/Normal/Hard 버튼을 보여 주고, 고른 난이도의 채보로 노트 수·길이를 표시하고 플레이한다.
 public class SongSelectScreen : MonoBehaviour
 {
     [SerializeField] private SongList songList;
@@ -23,6 +24,15 @@ public class SongSelectScreen : MonoBehaviour
     [SerializeField] private Button speedDownButton;      // 배속 -0.5
     [SerializeField] private Button speedUpButton;        // 배속 +0.5
     [SerializeField] private Button settingsButton;       // 설정 화면(키 설정·오프셋)으로 이동 (오른쪽 위)
+    [SerializeField] private GameObject difficultyGroup;  // DIFFICULTY 글자 + 버튼 3개 (채보가 하나뿐인 곡이면 숨김)
+    [SerializeField] private Button[] difficultyButtons = new Button[3]; // Difficulty 순서: Easy, Normal, Hard
+    [SerializeField] private Color[] difficultyColors =   // 선택된 난이도 버튼 색
+    {
+        new Color(0.2f, 0.65f, 0.3f, 1f),  // Easy 초록
+        new Color(0.2f, 0.45f, 0.85f, 1f), // Normal 파랑
+        new Color(0.6f, 0.1f, 0.1f, 1f)    // Hard 빨강
+    };
+    [SerializeField] private Color difficultyNormalColor = new Color(0.12f, 0.15f, 0.22f, 1f); // 선택 안 된 난이도 버튼 색
     [SerializeField] private AudioSource previewSource;   // 곡 미리듣기 전용 (인게임 음악과 별개, 반복 없음)
     [SerializeField] private string settingsSceneName = "SettingsScene";
     [SerializeField] private string playSceneName = "IngameScene";
@@ -62,6 +72,13 @@ public class SongSelectScreen : MonoBehaviour
         if (speedUpButton != null) speedUpButton.onClick.AddListener(SpeedUp);
         UpdateSpeedText();
         if (settingsButton != null) settingsButton.onClick.AddListener(OpenSettings);
+        for (int i = 0; i < difficultyButtons.Length; i++)
+        {
+            if (difficultyButtons[i] == null) continue;
+            int difficulty = i;
+            difficultyButtons[i].navigation = new Navigation { mode = Navigation.Mode.None }; // ↑↓는 곡 이동에만 쓴다
+            difficultyButtons[i].onClick.AddListener(() => SelectDifficulty(difficulty));
+        }
 
         int initial = System.Array.IndexOf(songs, SongSelection.Selected);
         Select(initial >= 0 ? initial : 0);
@@ -132,7 +149,31 @@ public class SongSelectScreen : MonoBehaviour
 
         SongData song = songs[selectedIndex];
         if (changed) PlayPreview(song);
-        List<NoteData> notes = song != null && song.Chart != null ? ChartLoader.Load(song.Chart, laneCount) : null;
+        RefreshInfo();
+    }
+
+    // 난이도를 고른다: 저장하고 버튼 강조·노트 수·길이·START 가능 여부를 갱신한다. 미리듣기는 건드리지 않는다.
+    public void SelectDifficulty(int difficulty)
+    {
+        if (loading) return;
+        SongSelection.SelectedDifficulty = (Difficulty)Mathf.Clamp(difficulty, 0, 2);
+        RefreshInfo();
+    }
+
+    // 선택한 곡·난이도의 채보로 곡 정보를 표시한다. 채보가 하나뿐인 곡은 난이도 버튼을 숨기고 그 채보를 쓴다.
+    private void RefreshInfo()
+    {
+        SongData[] songs = Songs;
+        SongData song = selectedIndex >= 0 && selectedIndex < songs.Length ? songs[selectedIndex] : null;
+        bool hasDifficulties = song != null && song.HasDifficulties;
+        if (difficultyGroup != null) difficultyGroup.SetActive(hasDifficulties);
+        int selected = (int)SongSelection.SelectedDifficulty;
+        for (int i = 0; i < difficultyButtons.Length; i++)
+            if (difficultyButtons[i] != null)
+                difficultyButtons[i].image.color = i == selected ? difficultyColors[i] : difficultyNormalColor;
+
+        TextAsset chart = song != null ? song.GetChart(SongSelection.SelectedDifficulty) : null;
+        List<NoteData> notes = chart != null ? ChartLoader.Load(chart, laneCount) : null;
         ShowInfo(song, notes);
     }
 

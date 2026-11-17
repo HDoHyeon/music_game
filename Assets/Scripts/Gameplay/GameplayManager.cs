@@ -91,7 +91,7 @@ public class GameplayManager : MonoBehaviour
         SongData song = SongSelection.Selected;
         if (song != null)
         {
-            chart = song.Chart;
+            chart = song.GetChart(SongSelection.SelectedDifficulty); // 선택 난이도 채보 (채보가 하나뿐인 곡은 그 채보)
             if (audioSource != null) audioSource.clip = song.Music; // 음악이 없으면 null → 시작 후 경과 시간 사용
         }
 

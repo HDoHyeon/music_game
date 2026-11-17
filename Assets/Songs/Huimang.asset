@@ -17,3 +17,6 @@ MonoBehaviour:
   chart: {fileID: 4900000, guid: e52ee5b329037344581a721f4342fbdb, type: 3}
   music: {fileID: 8300000, guid: 1ca30cff80395b849bac12b98629c454, type: 3}
   volume: 0.1
+  easyChart: {fileID: 4900000, guid: 5ad6048ce8d2c5147af9879e11a5f4ee, type: 3}
+  normalChart: {fileID: 4900000, guid: 1867c22e04c2e1a429838fa98865a9e0, type: 3}
+  hardChart: {fileID: 4900000, guid: e52ee5b329037344581a721f4342fbdb, type: 3}
